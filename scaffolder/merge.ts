@@ -20,7 +20,7 @@
  * Zero dependencies — uses only Node built-ins.
  */
 
-import { existsSync, mkdirSync, cpSync, readdirSync, statSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, cpSync, readdirSync, statSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve, relative, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -125,12 +125,54 @@ const outSkills = join(DOTCLAUDE, "skills");
 copyDir(coreSkills, outSkills);
 console.log(`[core] skills → ${relative(ROOT, outSkills)}`);
 
-// ─── Step 2: Copy core hooks (baseline) ───────────────────────────────────────
+// ─── Step 2: Merge hooks (core + stack composed) ─────────────────────────────
 
 const coreHooks = join(CORE_DIR, "hooks");
+const stackHooks = join(STACK_DIR, "hooks");
 const outHooks = join(DOTCLAUDE, "hooks");
-copyDir(coreHooks, outHooks);
-console.log(`[core] hooks → ${relative(ROOT, outHooks)}`);
+mkdirSync(outHooks, { recursive: true });
+
+// For hooks: if both core and stack have the same file, COMPOSE them (core first, then stack).
+// If only core has it, copy core. If only stack has it, copy stack.
+const coreHookFiles = existsSync(coreHooks)
+  ? readdirSync(coreHooks).filter((f) => f.endsWith(".sh"))
+  : [];
+const stackHookFiles = existsSync(stackHooks)
+  ? readdirSync(stackHooks).filter((f) => f.endsWith(".sh"))
+  : [];
+const allHookNames = new Set([...coreHookFiles, ...stackHookFiles]);
+
+for (const hookFile of allHookNames) {
+  const corePath = join(coreHooks, hookFile);
+  const stackPath = join(stackHooks, hookFile);
+  const outPath = join(outHooks, hookFile);
+
+  const coreExists = existsSync(corePath);
+  const stackExists = existsSync(stackPath);
+
+  if (coreExists && stackExists) {
+    // Compose: inline core content first, then stack additions
+    const coreContent = readFileSync(corePath, "utf-8");
+    const stackContent = readFileSync(stackPath, "utf-8");
+
+    // Strip the shebang from the stack version (we keep core's shebang)
+    const stackBody = stackContent.replace(/^#!.*\n/, "");
+
+    const composed = `${coreContent}
+
+# ─── Stack-specific additions (${stackName}) ────────────────────────────────
+${stackBody}`;
+
+    writeFileSync(outPath, composed);
+    console.log(`[merged] hooks/${hookFile} (core + stack composed)`);
+  } else if (coreExists) {
+    cpSync(corePath, outPath);
+    console.log(`[core] hooks/${hookFile}`);
+  } else {
+    cpSync(stackPath, outPath);
+    console.log(`[stack] hooks/${hookFile}`);
+  }
+}
 
 // ─── Step 3: Overlay stack files ──────────────────────────────────────────────
 
@@ -139,13 +181,6 @@ const stackSkills = join(STACK_DIR, "skills");
 if (existsSync(stackSkills)) {
   copyDir(stackSkills, outSkills);
   console.log(`[stack] skills → ${relative(ROOT, outSkills)} (override)`);
-}
-
-// Stack hooks override core hooks
-const stackHooks = join(STACK_DIR, "hooks");
-if (existsSync(stackHooks)) {
-  copyDir(stackHooks, outHooks);
-  console.log(`[stack] hooks → ${relative(ROOT, outHooks)} (override)`);
 }
 
 // Stack agents (no core baseline for agents — they're always stack-specific)
