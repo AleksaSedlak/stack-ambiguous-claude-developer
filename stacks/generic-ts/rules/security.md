@@ -74,8 +74,9 @@ await db.user.update({ where: { id }, data });
 
 ## Authentication
 
-- Compare secrets, tokens, and hashes with **constant-time** comparison:
-  `crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))` — never `===`.
+- Compare HMAC signatures and webhook secrets with **constant-time** comparison:
+  `crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))`. Required for signature
+  verification; use as defense-in-depth for opaque token comparisons behind TLS.
 - Passwords: Argon2id (preferred) or bcrypt with a cost factor ≥ 12. Never SHA-256 alone,
   never MD5.
 - JWT: use short access tokens (≤ 15 min), refresh tokens rotated on use and revocable.
@@ -127,6 +128,9 @@ await db.user.update({ where: { id }, data });
 
 - Lockfile committed. Never `--ignore-scripts` turned off globally for install — but be
   aware of post-install scripts in new deps.
+- Use `~` (tilde) for security-critical packages — gets patch updates automatically.
+  Use `^` (caret) for everything else. Pin exact only when a specific version is audited
+  and you'll manually upgrade.
 - Run `npm audit` / `pnpm audit` / `yarn audit` in CI. Block on high/critical.
 - Consider `snyk` or `socket` for supply-chain monitoring on direct deps.
 
