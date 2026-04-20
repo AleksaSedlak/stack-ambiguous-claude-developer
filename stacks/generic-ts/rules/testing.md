@@ -18,10 +18,11 @@ alwaysApply: true
 
 ## Naming & Structure
 
-`it('does thing when condition')` — no `should`. Group with `describe('functionName')` or
-`describe('ClassName')`.
+`it('does thing when condition')` — test names read as sentences. Group with
+`describe('functionName')` or `describe('ClassName')`.
 
-Arrange-Act-Assert in every test. No exceptions.
+Default to Arrange-Act-Assert. Interleaved assertions are OK for integration tests when
+phases are clearly separated.
 
 ```ts
 describe('createUser', () => {

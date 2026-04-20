@@ -57,11 +57,11 @@ Test names read as sentences describing behavior:
 
 Never `it('should work', ...)` / `it('works correctly', ...)`.
 
-## One assertion per test (default)
+## One behavior per test
 
-If the test name needs "and", split it. Group related tests with nested
-`describe` blocks. Exception: shape assertions on a single object (`expect(x).toEqual({...})`)
-count as one logical assertion.
+One test verifies one behavior. Multiple assertions proving that single behavior are fine
+(e.g., checking status code + response body + side effect for one endpoint call). If the
+test name needs "and" describing two *different* behaviors, split it.
 
 ## What to cover
 

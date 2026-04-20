@@ -6,8 +6,9 @@ alwaysApply: true
 
 ## Principles
 
-- Functions do one thing. If it needs a section comment, extract that section.
+- Functions do one thing. If you can't name it without "and", split it.
 - No magic values — extract numbers, strings, and config to named constants or typed config.
+  Exception: values used once where meaning is obvious from context (array index 0, HTTP 200, string in a single test assertion).
 - Handle errors at the boundary. Don't catch and re-throw without adding context.
 - No premature abstractions. Three similar lines > a helper used once.
 - Don't add features or "improve" things beyond what was asked.
@@ -16,10 +17,11 @@ alwaysApply: true
 ## TypeScript
 
 - `strict: true`. Also: `noUncheckedIndexedAccess`, `noImplicitOverride`,
-  `noFallthroughCasesInSwitch`, `exactOptionalPropertyTypes`.
+  `noFallthroughCasesInSwitch`.
 - No `any` in application code. Use `unknown` and narrow explicitly.
 - No non-null assertions (`foo!`) except after a proven existence check or on regex captures.
-- Explicit return types on every exported function. Inference is fine for internal helpers.
+- Explicit return types on exported functions with complex returns (unions, Promises,
+  generics). Inference is fine for trivial getters, wrappers, and internal helpers.
 - Prefer `interface` for object shapes that may extend; `type` for unions, intersections,
   mapped, conditional, and function types.
 - Discriminated unions over flags: `{ kind: 'ok'; value: T } | { kind: 'err'; error: E }`.
@@ -46,41 +48,23 @@ alwaysApply: true
 
 ## TSDoc / JSDoc
 
-Every exported function, class, and type must have a TSDoc block. The first line is a
-single-sentence summary; `@param` and `@returns` only when they add information the
-signature doesn't already provide.
+Add TSDoc only when behavior isn't obvious from the signature — thrown errors, side
+effects, non-obvious parameter constraints, cancellation semantics. If
+`getUser(id: UserId): Promise<User | null>` is self-explanatory, don't wrap it in a
+doc block that restates what the types already say.
 
-```ts
-/**
- * Fetches a user by ID. Returns null if not found.
- *
- * @throws {DatabaseError} when the underlying connection fails
- */
-export async function getUser(id: UserId): Promise<User | null> {
-  // ...
-}
-```
-
-- Don't restate the obvious (`@param id - the id`). Describe intent, constraints, side effects.
+When you do write TSDoc:
 - `@throws` for every error class the function can throw.
 - `@deprecated` with a migration hint, never without one.
+- Don't restate the obvious (`@param id - the id`). Describe intent, constraints, side effects.
 - Private functions don't need TSDoc unless they're non-obvious.
 
 ## Module Structure
 
-Order within a file:
-
-1. Imports — grouped and sorted:
-   - Node built-ins (`node:fs`, `node:path`)
-   - External packages
-   - Internal absolute imports (`@/...` / `~/...`)
-   - Relative imports (`./...`, `../...`)
-   - Type-only imports last, or inline with `import type { ... }`
-2. Type definitions (`type`, `interface`, `enum`)
-3. Constants
-4. The primary exported value (class / function / schema)
-5. Supporting internal functions in call order — top-to-bottom reads as a story
-6. Default export (if any) at the bottom
+Follow existing file structure in the project. For new files: imports at top, exports
+visible before internal helpers, supporting functions in call order (top-to-bottom reads
+as a story). Import ordering is handled by tooling (eslint-plugin-import or prettier
+plugin) — don't manually reorder.
 
 Prefer named exports over default exports. Default exports break rename refactors and grep.
 
@@ -137,7 +121,7 @@ const settings = await fetchSettings(id);
 ## Comments
 
 - **WHY**, never WHAT. If the code needs a "what" comment, rename instead.
-- TSDoc on every exported symbol. Internal helpers only need a comment when non-obvious.
+- TSDoc when behavior isn't obvious from the signature. Internal helpers only when non-obvious.
 - Comment non-obvious decisions, workarounds with issue links, complex algorithm steps.
 - No commented-out code — delete it. No journal comments — git blame does this.
 
@@ -150,4 +134,4 @@ const settings = await fetchSettings(id);
 | `// HACK(author): desc (#issue)` | Ugly workarounds (explain the proper fix) |
 | `// NOTE: desc` | Non-obvious context for future readers |
 
-Must have an owner + issue link. Don't commit TODOs you can do now.
+Must have an owner. Include issue link when tracked. Don't commit TODOs you can do now.
