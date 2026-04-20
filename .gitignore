@@ -1,0 +1,16 @@
+# Build output
+output/
+.research-tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node (for running scaffolder/installer scripts)
+node_modules/

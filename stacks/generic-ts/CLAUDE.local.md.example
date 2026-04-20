@@ -1,0 +1,20 @@
+# Personal Overrides
+
+> Rename this file to `CLAUDE.local.md` to activate it. It's gitignored — your settings stay local.
+
+## Local Dev Environment
+
+- Postgres on `localhost:5432`, user `postgres`, password in `.env.local`
+- Dev server on port 3000: `pnpm dev`
+- Node version pinned via `.nvmrc` — run `nvm use` before starting
+
+## My Preferences
+
+- I prefer concise responses — skip the recap after each change
+- When suggesting fixes, show the diff, don't explain what changed
+- Use `pnpm` — do not suggest `npm` or `yarn` commands
+
+## Current Work
+
+- Working on the billing module refactor (branch: `feature/billing-v2`)
+- Don't touch `src/legacy/` — being removed next sprint

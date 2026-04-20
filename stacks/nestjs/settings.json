@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "permissions": {
+    "allow": [
+      "Bash(npm install*)",
+      "Bash(npm ci*)",
+      "Bash(npm test*)",
+      "Bash(npm run *)",
+      "Bash(npx *)",
+      "Bash(pnpm install*)",
+      "Bash(pnpm i)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm dlx *)",
+      "Bash(pnpm *)",
+      "Bash(yarn install*)",
+      "Bash(yarn test*)",
+      "Bash(yarn run *)",
+      "Bash(yarn *)",
+      "Bash(bun install*)",
+      "Bash(bun test*)",
+      "Bash(bun run *)",
+      "Bash(bun x *)",
+      "Bash(bunx *)",
+      "Bash(node --version)",
+      "Bash(node *.js)",
+      "Bash(node *.mjs)",
+      "Bash(tsc --noEmit*)",
+      "Bash(tsx *)",
+      "Bash(vitest*)",
+      "Bash(jest*)",
+      "Bash(eslint *)",
+      "Bash(prettier *)",
+      "Bash(biome *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git fetch *)",
+      "Bash(git pull *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+
+      "Read(**/.env.example)",
+      "Read(**/.env.sample)",
+      "Read(**/.env.template)",
+      "Read(**/.env.defaults)",
+      "Read(**/.env.dist)",
+      "Write(**/.env.example)",
+      "Write(**/.env.sample)",
+      "Write(**/.env.template)",
+      "Edit(**/.env.example)",
+      "Edit(**/.env.sample)",
+      "Edit(**/.env.template)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/id_rsa*)",
+      "Read(**/id_ed25519*)",
+      "Write(**/.env)",
+      "Write(**/.env.*)",
+      "Write(**/secrets/**)",
+      "Write(**/*.pem)",
+      "Write(**/*.key)",
+      "Write(**/node_modules/**)",
+      "Write(**/dist/**)",
+      "Write(**/build/**)",
+      "Write(**/.next/**)",
+      "Write(**/.nuxt/**)",
+      "Write(**/.output/**)",
+      "Write(**/coverage/**)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(**/secrets/**)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.key)",
+      "Edit(**/package-lock.json)",
+      "Edit(**/pnpm-lock.yaml)",
+      "Edit(**/yarn.lock)",
+      "Edit(**/bun.lockb)"
+    ]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/protect-files.sh",
+            "timeout": 5000,
+            "statusMessage": "Checking file protections..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/warn-large-files.sh",
+            "timeout": 5000,
+            "statusMessage": "Checking for build artifacts..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-dangerous-commands.sh",
+            "timeout": 5000,
+            "statusMessage": "Checking command safety..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh",
+            "timeout": 5000,
+            "statusMessage": "Loading project context..."
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "which osascript >/dev/null 2>&1 && osascript -e 'display notification \"Claude Code needs your attention\" with title \"Claude Code\"' || which notify-send >/dev/null 2>&1 && notify-send 'Claude Code' 'Claude Code needs your attention' || true"
+          }
+        ]
+      }
+    ]
+  }
+}

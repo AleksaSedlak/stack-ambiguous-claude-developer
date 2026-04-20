@@ -1,0 +1,84 @@
+# Project Instructions
+
+<!-- STACK_META
+stack: <stack-name>
+language: <primary language>
+ecosystem: <ecosystem — e.g. node, beam, jvm, go, rust, python>
+-->
+
+## Commands
+
+```bash
+# Dependencies
+<!-- FILL: dependency install, add, remove commands -->
+
+# Build & type-check
+<!-- FILL: compile/build commands, type-checker if applicable -->
+
+# Test
+<!-- FILL: test runner commands — full suite, single file, by name/tag -->
+
+# Lint & format
+<!-- FILL: linter, formatter commands -->
+
+# Dev server
+<!-- FILL: development server with hot-reload, REPL if applicable -->
+
+# Database (if applicable)
+<!-- FILL: migration apply, rollback, reset, seed commands -->
+```
+
+## Architecture
+
+<!-- FILL: Standard project layout for this stack. Show directory tree with annotations.
+     Include boundary rules (what calls what, what's public vs internal). -->
+
+## Key Decisions
+
+> Record WHY non-obvious choices were made.
+> Examples: "Using X over Y because Z", "Chose A for B because we need C".
+
+## Workflow
+
+<!-- FILL: Stack-specific workflow steps. Examples:
+     - What to run before committing
+     - What to check after pulling
+     - How to start development
+     - When to use plan mode
+-->
+
+## Don'ts
+
+<!-- FILL: Stack-specific anti-patterns. Examples:
+     - Don't modify existing migrations
+     - Don't put business logic in controllers
+     - Don't use unsafe type casts
+     - Don't commit secrets
+-->
+
+## Obsidian Integration
+
+This project may be connected to an Obsidian vault for persistent knowledge storage.
+
+### Configuration
+
+- Vault path is stored in `settings.local.json` under `obsidianVaultPath`
+- If not configured, Obsidian features are inactive — no errors, just not available
+
+### Memory
+
+- Memories are written using the standard memory system (the directory is symlinked to the vault)
+- No changes to how you write memories — the symlink handles redirection
+- Memories appear in Obsidian under `Claude/<project>/memory/`
+
+### Reading vault context
+
+- Use `/context <keywords>` to search the vault for relevant notes
+- The vault may contain architecture decisions, debugging notes, and project knowledge written by the user
+- Treat vault notes as reference material — they may be outdated, always verify against current code
+
+### Boundaries
+
+- Never write directly to the vault root — only write through the memory system
+- Never modify the user's existing notes — only read them
+- Never read folders in the exclude list (`obsidianExclude` in settings.local.json)

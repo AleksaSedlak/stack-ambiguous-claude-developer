@@ -1,0 +1,34 @@
+---
+description: <!-- FILL: One-line description of what this rule covers -->
+alwaysApply: false
+paths:
+  - <!-- FILL: glob patterns for files this rule applies to -->
+---
+
+<!-- FILL: Rule content. Structure recommendations:
+
+## Section Name
+
+Each rule file should cover ONE concern (e.g., "API patterns", "database access", "security").
+
+Guidelines for writing rules:
+- Be specific and actionable — "use X instead of Y" not "be careful with Z"
+- Include code examples where the pattern isn't obvious
+- Separate "always do" from "never do"
+- Group related patterns under clear headings
+- Keep under 150 lines — if longer, split into multiple rule files
+- Reference the stack's conventions, not generic advice
+
+Good rule content:
+- Specific anti-patterns with fixes
+- Framework idioms that Claude should follow
+- Boundary rules (what calls what)
+- Error handling conventions
+- Naming conventions specific to this stack
+
+Bad rule content:
+- Generic programming advice ("write clean code")
+- Obvious things ("don't commit secrets") — that's handled by hooks
+- Style rules handled by the formatter
+- Anything already in CLAUDE.md
+-->
