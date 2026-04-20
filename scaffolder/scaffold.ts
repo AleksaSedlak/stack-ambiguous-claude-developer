@@ -81,6 +81,51 @@ for (const dir of dirs) {
   mkdirSync(join(STACK_DIR, dir), { recursive: true });
 }
 
+// ─── Skill SKILL.md stubs ─────────────────────────────────────────────────────
+
+const skillStubs: Array<{ dir: string; name: string; description: string }> = [
+  { dir: "skills/setupdotclaude", name: "setupdotclaude", description: "Scan the project and customize .claude/ configuration to match the actual stack" },
+  { dir: "skills/debug-fix", name: "debug-fix", description: "Find and fix a bug — from any source (issue, error message, user report)" },
+  { dir: "skills/ship", name: "ship", description: "Stage, commit, push, and prepare a PR — with confirmation at each step" },
+  { dir: "skills/hotfix", name: "hotfix", description: "Emergency production fix — minimal change, critical tests only, ship fast" },
+  { dir: "skills/tdd", name: "tdd", description: "Test-Driven Development loop — failing test first, minimal code to pass, refactor" },
+  { dir: "skills/refactor", name: "refactor", description: "Safely refactor code with test coverage as a safety net" },
+  { dir: "skills/test-writer", name: "test-writer", description: "Write comprehensive tests for new or changed code" },
+];
+
+for (const skill of skillStubs) {
+  writeFileSync(
+    join(STACK_DIR, skill.dir, "SKILL.md"),
+    `---
+name: ${skill.name}
+description: ${skill.description}
+argument-hint: "[describe what to ${skill.name}]"
+disable-model-invocation: true
+---
+
+<!-- EXAMPLE — replace with stack-specific implementation -->
+<!-- See stacks/generic-ts/skills/${skill.name}/SKILL.md or stacks/nestjs/skills/${skill.name}/SKILL.md for a complete example -->
+
+## Steps
+
+<!-- EXAMPLE — replace -->
+- Step 1: Understand the request
+- Step 2: Execute the core action
+- Step 3: Verify the result
+- Step 4: Report to the user
+<!-- /EXAMPLE -->
+
+## Stop Conditions
+
+<!-- EXAMPLE — replace -->
+- STOP if the change requires more than 50 lines and wasn't explicitly scoped
+- STOP if tests fail after 3 fix attempts
+- NEVER skip user confirmation at critical decision points
+<!-- /EXAMPLE -->
+`
+  );
+}
+
 // ─── CLAUDE.md ────────────────────────────────────────────────────────────────
 
 writeFileSync(
@@ -168,7 +213,6 @@ writeFileSync(
     {
       permissions: {
         allow: [
-          "// TODO: Add safe commands for this stack",
           "Bash(git status*)",
           "Bash(git log*)",
           "Bash(git diff*)",
@@ -178,7 +222,6 @@ writeFileSync(
           "Bash(git remote*)",
         ],
         deny: [
-          "// TODO: Add files/dirs to deny for this stack",
           "Edit(.env)",
           "Write(.env)",
           "Edit(.env.*)",
@@ -212,6 +255,35 @@ writeFileSync(
     null,
     2
   ) + "\n"
+);
+
+// settings.README.md — explains what to customize in settings.json
+writeFileSync(
+  join(STACK_DIR, "settings.README.md"),
+  `# settings.json — Customization Guide
+
+## permissions.allow
+
+Add safe, read-only, and dev commands for this stack. Examples:
+
+- Node: \`Bash(npm test*)\`, \`Bash(npx tsc*)\`, \`Bash(npx vitest*)\`
+- Python: \`Bash(pytest*)\`, \`Bash(ruff*)\`, \`Bash(mypy*)\`
+- Go: \`Bash(go test*)\`, \`Bash(go build*)\`, \`Bash(golangci-lint*)\`
+- Elixir: \`Bash(mix test*)\`, \`Bash(mix compile*)\`, \`Bash(mix format*)\`
+
+## permissions.deny
+
+Add files and directories that should never be edited. Examples:
+
+- Lockfiles: \`Edit(package-lock.json)\`, \`Edit(pnpm-lock.yaml)\`
+- Build output: \`Edit(dist/**)\`, \`Write(dist/**)\`
+- Dependencies: \`Edit(node_modules/**)\`, \`Write(vendor/**)\`
+
+## hooks
+
+The hook configuration is pre-wired. Customize the hook SCRIPTS in \`hooks/\`,
+not the hook wiring here (unless adding new hook triggers).
+`
 );
 
 // ─── Rule stubs ───────────────────────────────────────────────────────────────
@@ -548,6 +620,58 @@ writeFileSync(
   ) + "\n"
 );
 
+// ─── CLAUDE.local.md.example ──────────────────────────────────────────────────
+
+writeFileSync(
+  join(STACK_DIR, "CLAUDE.local.md.example"),
+  `# Local Overrides (rename to CLAUDE.local.md)
+
+<!-- This file is gitignored. Use it for personal preferences and project-specific
+     context that shouldn't be shared with the team. -->
+
+## My Preferences
+
+<!-- Examples:
+- I prefer verbose explanations over terse responses
+- Always suggest tests before implementation
+- Use pnpm, not npm
+-->
+
+## Project Context
+
+<!-- Examples:
+- We deploy to AWS ECS via GitHub Actions
+- The staging DB is shared — don't run destructive migrations without asking
+- Feature flags are managed in LaunchDarkly
+-->
+
+## Local Environment Notes
+
+<!-- Examples:
+- My local DB runs on port 5433 (not default 5432)
+- I use nvm with .nvmrc
+- Docker desktop must be running for integration tests
+-->
+`
+);
+
+// ─── .gitignore ───────────────────────────────────────────────────────────────
+
+writeFileSync(
+  join(STACK_DIR, ".gitignore"),
+  `# Local settings (secrets, vault paths)
+settings.local.json
+CLAUDE.local.md
+
+# Memory (symlinked to Obsidian vault or local)
+memory/
+
+# Temp files
+*.tmp
+*.log
+`
+);
+
 // ─── Done ─────────────────────────────────────────────────────────────────────
 
 console.log(`
@@ -556,16 +680,18 @@ Scaffolded new stack: ${STACK_DIR}
 Created:
   CLAUDE.md              — project instructions (fill TODO sections)
   settings.json          — permissions and hooks config
+  settings.README.md     — explains how to customize settings.json
   stack.config.json      — research sources (fill for /new-stack research mode)
+  CLAUDE.local.md.example — personal overrides template
+  .gitignore             — excludes local/temp files
   rules/                 — 6 rule stubs (code-quality, testing, api, database, security, error-handling)
   agents/                — 4 agent stubs (code-reviewer, security, performance, doc)
   hooks/                 — 4 hook stubs (protect-files, warn-large-files, format-on-save, session-start)
-  skills/                — directory structure for stack-specific skills
+  skills/                — 7 skill stubs with SKILL.md templates
 
 Next steps:
   1. Fill stack.config.json with doc URLs and exemplar repos
   2. Run research mode to assist filling TODOs (or fill manually)
   3. Customize hooks for this stack's build tools and lockfiles
-  4. Write stack-specific skills (debug-fix, ship, hotfix, tdd, refactor, test-writer)
-     or copy from generic-ts/nestjs and adapt
+  4. Adapt skill SKILL.md files from generic-ts/nestjs as a reference
 `);

@@ -61,10 +61,10 @@ Test it against whatever exemplar is currently in `stacks/nestjs/stack.config.js
 
 ### Task 1.3 — Scaffold produces invalid JSON and empty skills directories
 
-- [ ] `settings.json` is valid JSON (no string comments inside arrays)
-- [ ] Every `skills/<name>/` directory has a `SKILL.md` stub inside it
-- [ ] `CLAUDE.local.md.example` exists
-- [ ] Stack-level `.gitignore` exists
+- [x] `settings.json` is valid JSON (no string comments inside arrays)
+- [x] Every `skills/<name>/` directory has a `SKILL.md` stub inside it
+- [x] `CLAUDE.local.md.example` exists
+- [x] Stack-level `.gitignore` exists
 
 **Prompt:**
 
