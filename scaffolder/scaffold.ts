@@ -288,83 +288,297 @@ not the hook wiring here (unless adding new hook triggers).
 
 // ─── Rule stubs ───────────────────────────────────────────────────────────────
 
-const ruleStubs = [
+const RULE_HEADER = `<!-- Fill each section below. Replace the <!-- EXAMPLE --> blocks with real
+     stack-specific rules. Do not leave any <!-- EXAMPLE --> blocks in a finished
+     stack — validate-stack.ts will fail. -->`;
+
+interface RuleStub {
+  name: string;
+  description: string;
+  alwaysApply: boolean;
+  paths: string[];
+  content: string;
+}
+
+const ruleStubs: RuleStub[] = [
   {
     name: "code-quality",
     description: `Code quality patterns for ${stackName}`,
     alwaysApply: true,
-    content: `## TODO: Fill in code quality rules
-- Naming conventions
-- Type safety rules
-- Module boundary rules
-- Import/export conventions`,
+    paths: [],
+    content: `${RULE_HEADER}
+
+## Principles
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Write functions that do multiple things separated by blank lines or section comments.
+**Do:** Extract each responsibility into a named function. If you can't name it without "and", split it.
+**Why:** Small functions are testable, reusable, and readable. Large functions hide bugs in their middle.
+<!-- /EXAMPLE -->
+
+## Language/Type Safety
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Use \`any\` or equivalent to silence a type error.
+**Do:** Use the language's narrowing/pattern-matching to handle all cases explicitly.
+**Why:** Type erasure at runtime means the compiler is your only safety net — bypassing it invites production crashes.
+<!-- /EXAMPLE -->
+
+## Naming
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Use abbreviations like \`usr\`, \`btn\`, \`mgr\`, \`svc\` in identifiers.
+**Do:** Use full words: \`user\`, \`button\`, \`manager\`, \`service\`. Only abbreviate universally known terms (\`id\`, \`url\`, \`api\`, \`db\`).
+**Why:** Code is read 10x more than written. Saving 3 characters costs every future reader a mental lookup.
+<!-- /EXAMPLE -->
+
+## Patterns
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Use sequential awaits on independent async operations.
+**Do:** Use concurrent execution (Promise.all, Task.async_stream, goroutines) for independent work.
+**Why:** Sequential awaits double/triple latency for no reason when operations don't depend on each other.
+<!-- /EXAMPLE -->
+
+## Comments
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Write comments that restate what the code does (\`// increment counter\`).
+**Do:** Comment WHY — non-obvious decisions, workarounds with issue links, algorithm rationale.
+**Why:** The code already says what. Comments that restate it become lies when the code changes.
+<!-- /EXAMPLE -->`,
   },
   {
     name: "testing",
     description: `Testing patterns for ${stackName}`,
     alwaysApply: true,
-    content: `## TODO: Fill in testing rules
-- Test framework and conventions
-- Arrange-Act-Assert structure
-- Mocking boundaries
-- Test organization (co-located vs separate)`,
+    paths: [],
+    content: `${RULE_HEADER}
+
+## Principles
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Write tests that assert implementation details (mock call counts, internal state).
+**Do:** Assert observable behavior — given this input, expect this output or side effect.
+**Why:** Implementation-coupled tests break on every refactor without catching real bugs.
+<!-- /EXAMPLE -->
+
+## Naming
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Name tests \`it('should work')\` or \`it('works correctly')\`.
+**Do:** Name tests as behavior sentences: \`it('returns 404 when user does not exist')\`.
+**Why:** When a test fails in CI, the name is all you see. It must tell you what broke without reading the code.
+<!-- /EXAMPLE -->
+
+## Structure
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Mix setup, action, and assertions throughout the test body.
+**Do:** Use Arrange-Act-Assert: clear setup block, single action, then assertions.
+**Why:** AAA structure makes tests scannable — you can instantly see what's being tested and what's expected.
+<!-- /EXAMPLE -->
+
+## Mocking
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Mock the module under test, or deep-mock collaborators with complex return setups.
+**Do:** Mock only at system boundaries (HTTP, DB driver, filesystem, clock). Use real implementations for everything else.
+**Why:** Over-mocking creates tests that pass with broken code. Boundary mocks catch real integration issues.
+<!-- /EXAMPLE -->
+
+## Coverage
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Target 100% line coverage with synthetic assertions that don't verify behavior.
+**Do:** Cover happy path, error paths, and edge cases for each public function. Coverage is a symptom of good tests, not a goal.
+**Why:** A test that hits a line without asserting its behavior is a false signal — it gives confidence without evidence.
+<!-- /EXAMPLE -->`,
   },
   {
     name: "api",
     description: `API/handler patterns for ${stackName}`,
     alwaysApply: false,
-    content: `## TODO: Fill in API rules
-- Request handling patterns
-- Input validation
-- Response formatting
-- Error responses
-- Pagination
-- Rate limiting`,
+    paths: ["src/controllers/**", "src/routes/**", "app/api/**", "src/handlers/**"],
+    content: `${RULE_HEADER}
+
+## Request Handling
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Put business logic directly in route handlers / controllers.
+**Do:** Keep handlers thin — parse input, call a service, format output. Logic lives in services.
+**Why:** Thin handlers are testable without HTTP, reusable across transports, and easy to review.
+<!-- /EXAMPLE -->
+
+## Input Validation
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Trust request body shapes because your types say so — types are erased at runtime.
+**Do:** Validate every input with a runtime schema (Zod, class-validator, Pydantic, etc.) at the handler boundary.
+**Why:** Unvalidated input is the #1 source of injection, crashes, and data corruption.
+<!-- /EXAMPLE -->
+
+## Response Formatting
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Return raw database entities as API responses.
+**Do:** Define response DTOs/shapes that expose only what clients need. Never leak internal fields (password hashes, internal IDs, audit timestamps).
+**Why:** Coupling responses to DB schema means every schema change is a breaking API change.
+<!-- /EXAMPLE -->
+
+## Error Responses
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Return stack traces, SQL fragments, or internal file paths in error responses.
+**Do:** Map errors to a consistent shape (\`{ code, message }\`) in one place (error middleware / exception filter).
+**Why:** Verbose errors are an information leak to attackers and useless to API consumers.
+<!-- /EXAMPLE -->`,
   },
   {
     name: "database",
     description: `Database access patterns for ${stackName}`,
     alwaysApply: false,
-    content: `## TODO: Fill in database rules
-- Migration conventions
-- Query patterns (avoid N+1)
-- Transaction handling
-- Connection pooling
-- Schema conventions`,
+    paths: ["src/repositories/**", "src/models/**", "prisma/**", "migrations/**", "src/db/**"],
+    content: `${RULE_HEADER}
+
+## Migrations
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Modify an existing migration that has been applied to any environment.
+**Do:** Always create a new migration for schema changes. Treat applied migrations as immutable history.
+**Why:** Modifying a migration that's been run elsewhere causes schema drift — staging and production diverge silently.
+<!-- /EXAMPLE -->
+
+## Query Patterns
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Call the database inside a loop (\`for user in users: db.get_orders(user.id)\`).
+**Do:** Batch queries (\`WHERE id IN (...)\`) or use eager loading / joins / includes.
+**Why:** N+1 queries are the most common performance bug in data-backed apps. 100 users = 101 queries instead of 2.
+<!-- /EXAMPLE -->
+
+## Transactions
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Do HTTP calls or slow I/O inside an open transaction.
+**Do:** Keep transactions short — gather data outside, then wrap only the writes in a transaction.
+**Why:** Long-held transactions starve the connection pool and can cause deadlocks under concurrent load.
+<!-- /EXAMPLE -->
+
+## Connection Pooling
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Open unbounded concurrent database calls (\`Promise.all(thousands.map(query))\`).
+**Do:** Use bounded concurrency (pool size limits, p-limit, semaphores) matching your connection pool.
+**Why:** Exceeding pool size causes connection timeouts that cascade into request failures.
+<!-- /EXAMPLE -->`,
   },
   {
     name: "security",
     description: `Security patterns for ${stackName}`,
     alwaysApply: false,
-    content: `## TODO: Fill in security rules
-- Input validation at boundaries
-- Injection prevention (SQL, command, template)
-- Authentication patterns
-- Authorization patterns
-- Secrets management
-- CORS/CSRF`,
+    paths: ["src/**"],
+    content: `${RULE_HEADER}
+
+## Input Validation
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Trust client-provided data without runtime validation — types don't exist at runtime.
+**Do:** Parse and validate at every system boundary with a schema library. Reject unknown fields by default.
+**Why:** Unvalidated input is the entry point for injection, overflow, and logic bugs.
+<!-- /EXAMPLE -->
+
+## Injection Prevention
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Build SQL, shell commands, or templates with string concatenation using user input.
+**Do:** Use parameterized queries, argv arrays for shell, and auto-escaping template engines.
+**Why:** Injection is the most exploited vulnerability class. One unescaped input = full compromise.
+<!-- /EXAMPLE -->
+
+## Authentication
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Roll your own OAuth flow, JWT validation, or session management from scratch.
+**Do:** Use established libraries (Passport, Auth.js, Lucia, better-auth, python-jose, etc.). Store tokens in httpOnly cookies.
+**Why:** Hand-rolled auth has subtle timing, storage, and validation bugs that libraries have already fixed.
+<!-- /EXAMPLE -->
+
+## Authorization
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Fetch a resource by ID without checking ownership or role (\`db.findById(req.params.id)\`).
+**Do:** Always scope queries by the authenticated principal or check access explicitly before returning data.
+**Why:** IDOR (Insecure Direct Object Reference) is the most common authorization flaw — knowing an ID shouldn't grant access.
+<!-- /EXAMPLE -->
+
+## Secrets
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Scatter \`process.env.SECRET\` / \`os.environ["SECRET"]\` calls throughout the codebase.
+**Do:** Load all secrets through a single typed config module. Validate at startup. Fail fast on missing secrets.
+**Why:** Centralized config makes secrets auditable, testable (mock one module), and impossible to accidentally log.
+<!-- /EXAMPLE -->
+
+## Dependencies
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Install packages without checking maintenance status or known vulnerabilities.
+**Do:** Run \`audit\` in CI, pin security-critical packages, and review new deps before adding.
+**Why:** Supply chain attacks target unmaintained packages. One compromised transitive dep = full access.
+<!-- /EXAMPLE -->`,
   },
   {
     name: "error-handling",
     description: `Error handling patterns for ${stackName}`,
     alwaysApply: false,
-    content: `## TODO: Fill in error handling rules
-- Error taxonomy (classes/types)
-- Where to catch vs propagate
-- Structured error responses
-- Logging conventions
-- Retry patterns`,
+    paths: ["src/**"],
+    content: `${RULE_HEADER}
+
+## Error Classes
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Throw bare strings, numbers, or plain objects as errors.
+**Do:** Define typed error classes with stable codes. Extend from the language's base Error class.
+**Why:** Typed errors enable pattern matching in catch blocks and structured logging. Bare strings lose stack traces.
+<!-- /EXAMPLE -->
+
+## Async Error Flow
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Leave async calls unhandled (floating promises, unawaited tasks, fire-and-forget).
+**Do:** Every async operation is either awaited, returned, or explicitly caught with error handling.
+**Why:** Unhandled rejections crash the process in modern runtimes. Silent failures corrupt state.
+<!-- /EXAMPLE -->
+
+## HTTP Boundaries
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Let handlers individually format error responses with inconsistent shapes.
+**Do:** Map your error taxonomy to HTTP status codes in ONE place (error middleware / exception filter / error boundary).
+**Why:** Consistent error responses make APIs predictable for consumers and logs parseable for operators.
+<!-- /EXAMPLE -->
+
+## Logging
+
+<!-- EXAMPLE — replace with stack-specific content -->
+**Don't:** Use print/console.log for production error logging. Don't log full request bodies or user objects.
+**Do:** Use structured logging (JSON) with named event strings, correlation IDs, and a redact list for sensitive fields.
+**Why:** Unstructured logs are unsearchable. Logging secrets or PII violates compliance and creates breach risk.
+<!-- /EXAMPLE -->`,
   },
 ];
 
 for (const rule of ruleStubs) {
+  const pathsBlock = rule.paths.length > 0
+    ? rule.paths.map((p) => `  - "${p}"`).join("\n")
+    : `  - "**/*.TODO_ADD_GLOB"`;
+
   writeFileSync(
     join(STACK_DIR, "rules", `${rule.name}.md`),
     `---
 description: ${rule.description}
-alwaysApply: ${rule.alwaysApply}
-paths:
-  - "**/*.TODO_ADD_GLOB"
+alwaysApply: ${rule.alwaysApply}${!rule.alwaysApply ? `\npaths:\n${pathsBlock}` : ""}
 ---
 
 ${rule.content}

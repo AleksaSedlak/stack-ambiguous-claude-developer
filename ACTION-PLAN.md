@@ -86,9 +86,9 @@ Show me `ls -la` of a freshly scaffolded stack before and after your changes.
 
 ### Task 1.4 — Replace vague TODO stubs with filled example templates
 
-- [ ] Each rule file has pre-filled section headers (not just bullet labels)
-- [ ] Each section has 1-2 example rules marked as examples to replace
-- [ ] Examples use the anti-pattern → fix format
+- [x] Each rule file has pre-filled section headers (not just bullet labels)
+- [x] Each section has 1-2 example rules marked as examples to replace
+- [x] Examples use the anti-pattern → fix format
 
 **Prompt:**
 
