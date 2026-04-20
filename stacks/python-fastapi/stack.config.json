@@ -1,0 +1,18 @@
+{
+  "name": "python-fastapi",
+  "language": "Python",
+  "ecosystem": "python",
+  "docs": [
+    "https://fastapi.tiangolo.com/tutorial/first-steps/",
+    "https://fastapi.tiangolo.com/tutorial/path-params/",
+    "https://fastapi.tiangolo.com/tutorial/dependencies/"
+  ],
+  "exemplars": [
+    "tiangolo/full-stack-fastapi-template"
+  ],
+  "sparsePaths": [
+    "backend/app/**",
+    "backend/pyproject.toml",
+    "backend/tests/**"
+  ]
+}
