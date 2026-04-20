@@ -111,14 +111,22 @@ For rules, present each one with:
 
 ## Step 5: Validate
 
-After all sections are filled:
+Run the canonical validation script:
 
-1. Check that every rule file has valid frontmatter (description, alwaysApply, paths with real globs — not `**/*.TODO_ADD_GLOB`)
-2. Check that `settings.json` has no placeholder comments in arrays
-3. Check that no TODO markers remain in any file
-4. Verify hooks are syntactically valid: `bash -n stacks/<stack-name>/hooks/*.sh`
+```bash
+npx tsx scaffolder/validate-stack.ts stacks/<stack-name>
+```
 
-Report any remaining issues to the user.
+This checks:
+1. All required files exist (per `core/templates/stack-manifest.json`)
+2. No forbidden content markers remain (`TODO_ADD_GLOB`, `<!-- EXAMPLE —`)
+3. Required sections present in each rule file
+4. Minimum line counts met for critical files
+5. `settings.json` is valid JSON with no string comments in arrays
+6. All hooks pass `bash -n` syntax check
+7. No unlinked TODOs in rule/agent files
+
+If any check fails, fix the issues and re-run. All checks must pass before proceeding.
 
 ## Step 6: Test Merge
 

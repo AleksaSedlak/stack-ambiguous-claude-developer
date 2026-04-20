@@ -131,7 +131,7 @@ Now that the scaffold produces usable output, add the mechanisms that actually c
 
 - [x] `core/templates/stack-manifest.json` exists
 - [x] Manifest covers required files, required sections per rule, minimum line counts
-- [ ] Manifest is consumed by `validate-stack.ts` (next task)
+- [x] Manifest is consumed by `validate-stack.ts` (next task)
 
 **Prompt:**
 
@@ -187,14 +187,14 @@ Do NOT apply this to existing stacks — if they fail, we deal with that separat
 
 ### Task 2.2 — Create `validate-stack.ts`
 
-- [ ] Script reads the manifest and validates a given stack path
-- [ ] Checks required files exist
-- [ ] Checks each rule has required sections (grep for `## Section`)
-- [ ] Checks minimum line counts
-- [ ] Checks no forbidden content markers remain
-- [ ] Checks `settings.json` parses as valid JSON
-- [ ] Checks each hook passes `bash -n`
-- [ ] Exits non-zero on any failure with specific messages
+- [x] Script reads the manifest and validates a given stack path
+- [x] Checks required files exist
+- [x] Checks each rule has required sections (grep for `## Section`)
+- [x] Checks minimum line counts
+- [x] Checks no forbidden content markers remain
+- [x] Checks `settings.json` parses as valid JSON
+- [x] Checks each hook passes `bash -n`
+- [x] Exits non-zero on any failure with specific messages
 
 **Prompt:**
 
