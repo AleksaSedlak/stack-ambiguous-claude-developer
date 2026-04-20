@@ -129,8 +129,8 @@ Now that the scaffold produces usable output, add the mechanisms that actually c
 
 ### Task 2.1 — Create the stack manifest
 
-- [ ] `core/templates/stack-manifest.json` exists
-- [ ] Manifest covers required files, required sections per rule, minimum line counts
+- [x] `core/templates/stack-manifest.json` exists
+- [x] Manifest covers required files, required sections per rule, minimum line counts
 - [ ] Manifest is consumed by `validate-stack.ts` (next task)
 
 **Prompt:**
