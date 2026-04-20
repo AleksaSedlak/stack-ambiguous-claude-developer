@@ -128,7 +128,26 @@ This checks:
 
 If any check fails, fix the issues and re-run. All checks must pass before proceeding.
 
-## Step 6: Test Merge
+## Step 6: Parity Test Against an Exemplar Repo
+
+A stack is not done until it's been installed into a real repo and proven to do something useful.
+
+1. Pick an exemplar repo listed in `stack.config.json` and clone it locally (if not already cloned from the research step — check `.research-tmp/<stack-name>/`).
+2. Run the installer:
+   ```bash
+   npx tsx installer/install.ts <stack-name> <exemplar-path> --force
+   ```
+3. Inside the exemplar, run `/setupdotclaude`. It must complete without errors. If it errors, the CLAUDE.md commands or architecture section likely has issues — fix them and re-run.
+4. Verify rule globs match real files: for each rule file with a `paths:` glob, run the glob against the exemplar and confirm it returns >0 files. If a rule matches nothing, its `paths:` is wrong for this stack's conventions.
+5. Run `/pr-review` against the last merged commit on main. It must produce at least one finding (proves agents are not empty shells). If it produces zero findings on a non-trivial commit, the agents are under-specified — go back and add more specific patterns.
+6. Run `validate-stack.ts` one final time (in case the parity test revealed content gaps that need fixing):
+   ```bash
+   npx tsx scaffolder/validate-stack.ts stacks/<stack-name>
+   ```
+
+Only after ALL steps in this parity test pass is the stack considered complete. "I filled in the files" is not the same as "this stack works."
+
+## Step 7: Test Merge
 
 Run merge to verify the output looks correct:
 
@@ -143,7 +162,7 @@ find output/<stack-name> -type f | sort
 
 Ask if they want to review any specific file in the output.
 
-## Step 7: Done
+## Step 8: Done
 
 ```
 Stack "<stack-name>" is ready!

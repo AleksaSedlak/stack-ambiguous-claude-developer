@@ -230,10 +230,10 @@ Wire it into `/new-stack` Step 5 as the canonical validation — replace whateve
 
 ### Task 2.3 — Add exemplar-repo parity test to `/new-stack`
 
-- [ ] After filling the stack, the skill walks the user through installing it into an exemplar repo
-- [ ] `/setupdotclaude` must run cleanly
-- [ ] Rule globs must match at least some files in the exemplar
-- [ ] `/pr-review` must produce at least one finding on a recent commit
+- [x] After filling the stack, the skill walks the user through installing it into an exemplar repo
+- [x] `/setupdotclaude` must run cleanly
+- [x] Rule globs must match at least some files in the exemplar
+- [x] `/pr-review` must produce at least one finding on a recent commit
 
 **Prompt:**
 
