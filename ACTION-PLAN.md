@@ -38,9 +38,9 @@ Do NOT modify any existing stack. Only touch `scaffolder/research.ts` and its te
 
 ### Task 1.2 — Fix `research.ts` sparse clone
 
-- [ ] Cloned exemplar repos actually have files on disk
-- [ ] `find` on the clone returns real results
-- [ ] Sparse paths are configurable per stack
+- [x] Cloned exemplar repos actually have files on disk
+- [x] `find` on the clone returns real results
+- [x] Sparse paths are configurable per stack
 
 **Prompt:**
 

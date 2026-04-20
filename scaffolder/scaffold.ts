@@ -535,6 +535,13 @@ writeFileSync(
         "// Example: vercel/next.js/examples/with-prisma",
         "// Example: steven-tey/dub",
       ],
+      sparsePaths: [
+        "// Optional: paths to sparse-checkout for large exemplar repos",
+        "// If set, only these paths are downloaded (faster). If empty/missing, full clone.",
+        "// Example: src/**",
+        "// Example: package.json",
+        "// Example: tsconfig.json",
+      ],
     },
     null,
     2

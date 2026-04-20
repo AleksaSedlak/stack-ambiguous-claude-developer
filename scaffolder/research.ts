@@ -75,6 +75,7 @@ interface StackConfig {
   ecosystem: string;
   docs: string[];
   exemplars: string[];
+  sparsePaths?: string[];
 }
 
 const config: StackConfig = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
@@ -306,17 +307,38 @@ function analyzeExemplar(repoRef: string): RepoResult {
   try {
     mkdirSync(TEMP_DIR, { recursive: true });
 
-    // Shallow clone — full checkout (not sparse) for reliability
     if (!existsSync(cloneDir)) {
-      execSync(`git clone --depth 1 "${repoUrl}.git" "${cloneDir}" 2>/dev/null`, {
-        timeout: 60000,
-      });
+      if (config.sparsePaths && config.sparsePaths.length > 0) {
+        // Sparse clone — only checkout configured paths (fast for large repos)
+        execSync(`git clone --depth 1 --filter=blob:none --sparse "${repoUrl}.git" "${cloneDir}" 2>/dev/null`, {
+          timeout: 60000,
+        });
+        const sparseArgs = config.sparsePaths.map((p) => `"${p}"`).join(" ");
+        execSync(`cd "${cloneDir}" && git sparse-checkout set ${sparseArgs}`, {
+          timeout: 15000,
+        });
+      } else {
+        // Full shallow clone (slower but guaranteed to have files)
+        process.stderr.write(`  (no sparsePaths configured — doing full shallow clone, may be slow)\n`);
+        execSync(`git clone --depth 1 "${repoUrl}.git" "${cloneDir}" 2>/dev/null`, {
+          timeout: 60000,
+        });
+      }
     }
 
     const targetDir = subpath ? join(cloneDir, subpath) : cloneDir;
 
     if (!existsSync(targetDir)) {
       return { repo: repoRef, tree: "", configFiles: [], srcStructure: "", error: `Subpath "${subpath}" not found in clone` };
+    }
+
+    // Verify at least one file exists in the working tree
+    const fileCheck = execSync(`find "${targetDir}" -maxdepth 3 -type f -not -path '*/.git/*' | head -1`, {
+      encoding: "utf-8",
+      timeout: 5000,
+    }).trim();
+    if (!fileCheck) {
+      return { repo: repoRef, tree: "", configFiles: [], srcStructure: "", error: "Clone appears empty — no files found after checkout. Check sparsePaths configuration." };
     }
 
     // Get tree (top 3 levels)
