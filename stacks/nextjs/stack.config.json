@@ -1,0 +1,21 @@
+{
+  "name": "nextjs",
+  "language": "TypeScript",
+  "ecosystem": "node",
+  "docs": [
+    "https://nextjs.org/docs/app/building-your-application/routing",
+    "https://nextjs.org/docs/app/building-your-application/data-fetching",
+    "https://nextjs.org/docs/app/building-your-application/testing"
+  ],
+  "exemplars": [
+    "vercel/next.js/examples/with-prisma",
+    "steven-tey/dub"
+  ],
+  "sparsePaths": [
+    "src/**",
+    "app/**",
+    "package.json",
+    "tsconfig.json",
+    "next.config.*"
+  ]
+}

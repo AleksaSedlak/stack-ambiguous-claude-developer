@@ -1,0 +1,19 @@
+{
+  "name": "go",
+  "language": "Go",
+  "ecosystem": "go",
+  "docs": [
+    "https://go.dev/doc/effective_go",
+    "https://go.dev/doc/faq",
+    "https://pkg.go.dev/testing"
+  ],
+  "exemplars": [
+    "gin-gonic/gin",
+    "gofiber/fiber"
+  ],
+  "sparsePaths": [
+    "**/*.go",
+    "go.mod",
+    "go.sum"
+  ]
+}
