@@ -81,6 +81,11 @@ interface StackConfig {
   language: string;
   ecosystem: string;
   docs: string[];
+  docsRepo?: {
+    repo: string;
+    paths: string[];
+    branch?: string;
+  };
   exemplars: string[];
   sparsePaths?: string[];
 }
@@ -284,7 +289,125 @@ function filterBySection(markdown: string, filter: string): string {
   return result.join("\n").trim();
 }
 
-// ─── Fetch Docs ───────────────────────────────────────────────────────────────
+// ─── MDX Stripping ──────────────────────────────────────────────────────────
+
+function stripMdx(content: string): string {
+  let s = content;
+
+  // Extract title from frontmatter before stripping
+  const frontmatterMatch = s.match(/^---\n([\s\S]*?)\n---/);
+  let title = "";
+  if (frontmatterMatch) {
+    const titleMatch = frontmatterMatch[1].match(/title:\s*['"]?(.+?)['"]?\s*$/m);
+    if (titleMatch) title = titleMatch[1];
+    s = s.replace(/^---\n[\s\S]*?\n---\n?/, "");
+  }
+
+  // Remove import statements (at top of file or anywhere)
+  s = s.replace(/^import\s+.*$/gm, "");
+
+  // Remove export statements (but not code inside ``` blocks)
+  s = s.replace(/^export\s+(?:default\s+)?(?:const|let|var|function|class)\s+.*$/gm, "");
+
+  // Strip JSX/MDX component tags but keep inner text content
+  // Self-closing tags: <Component /> or <Component prop="val" />
+  s = s.replace(/<[A-Z]\w*[^>]*\/>/g, "");
+  // Opening + closing tags: <Component>...</Component> — keep inner content
+  s = s.replace(/<[A-Z]\w*[^>]*>/g, "");
+  s = s.replace(/<\/[A-Z]\w*>/g, "");
+
+  // Clean up extra blank lines
+  s = s.replace(/\n{3,}/g, "\n\n");
+  s = s.trim();
+
+  // Prepend title as heading if extracted from frontmatter
+  if (title) {
+    s = `# ${title}\n\n${s}`;
+  }
+
+  return s;
+}
+
+// ─── Fetch Docs from GitHub Repo ────────────────────────────────────────────
+
+function fetchDocsFromRepo(docsRepo: NonNullable<StackConfig["docsRepo"]>): DocResult[] {
+  const repoUrl = `https://github.com/${docsRepo.repo}`;
+  const branch = docsRepo.branch || "main";
+  const cloneDir = join(TEMP_DIR, `docs-repo-${docsRepo.repo.replace(/[/\\:]/g, "_")}`);
+
+  try {
+    mkdirSync(TEMP_DIR, { recursive: true });
+
+    if (!existsSync(cloneDir)) {
+      // Shallow clone with sparse checkout
+      execSync(
+        `git clone --depth 1 --branch "${branch}" --filter=blob:none --sparse "${repoUrl}.git" "${cloneDir}" 2>/dev/null`,
+        { timeout: 60000 },
+      );
+
+      if (docsRepo.paths.length > 0) {
+        // sparse-checkout expects directories, not glob patterns
+        // Extract directory prefixes from paths (e.g., "content/**/*.md" → "content")
+        const dirs = [...new Set(docsRepo.paths.map((p) => p.split("/")[0]))];
+        const sparseArgs = dirs.map((d) => `"${d}"`).join(" ");
+        execSync(`cd "${cloneDir}" && git sparse-checkout set ${sparseArgs}`, {
+          timeout: 15000,
+        });
+      }
+    }
+
+    // Find all .md and .mdx files
+    const files = execSync(
+      `find "${cloneDir}" -type f \\( -name "*.md" -o -name "*.mdx" \\) -not -path "*/.git/*" | sort`,
+      { encoding: "utf-8", timeout: 10000 },
+    )
+      .trim()
+      .split("\n")
+      .filter((f) => f.trim());
+
+    if (files.length === 0) {
+      process.stderr.write(`  Warning: no .md/.mdx files found in ${docsRepo.repo}\n`);
+      return [];
+    }
+
+    process.stderr.write(`  Found ${files.length} doc files in ${docsRepo.repo}\n`);
+
+    const results: DocResult[] = [];
+    for (const filePath of files) {
+      const relativePath = filePath.replace(cloneDir + "/", "");
+      const raw = readFileSync(filePath, "utf-8");
+
+      // Strip MDX syntax, extract title
+      let markdown = filePath.endsWith(".mdx") ? stripMdx(raw) : raw;
+
+      // Use filename path as fallback title
+      const title = relativePath.replace(/\.(md|mdx)$/, "").replace(/\//g, " / ");
+
+      // Apply section filter
+      if (sectionFilter) {
+        markdown = filterBySection(markdown, sectionFilter);
+        if (!markdown) continue; // skip files with no matching sections
+      }
+
+      // Apply character cap
+      if (markdown.length > MAX_CHARS) {
+        markdown = markdown.slice(0, MAX_CHARS) + `\n\n--- (truncated at ${MAX_CHARS} chars) ---`;
+      }
+
+      // Skip nearly empty files
+      if (markdown.replace(/\s/g, "").length < 50) continue;
+
+      results.push({ url: `${repoUrl}/blob/${branch}/${relativePath}`, title, markdown });
+    }
+
+    return results;
+  } catch (e: any) {
+    process.stderr.write(`  Warning: failed to fetch docs from ${docsRepo.repo}: ${e.message?.slice(0, 200)}\n`);
+    return [];
+  }
+}
+
+// ─── Fetch Docs via curl ────────────────────────────────────────────────────
 
 interface DocResult {
   url: string;
@@ -378,10 +501,19 @@ function analyzeExemplar(repoRef: string): RepoResult {
             timeout: 60000,
           },
         );
-        const sparseArgs = config.sparsePaths.map((p) => `"${p}"`).join(" ");
-        execSync(`cd "${cloneDir}" && git sparse-checkout set ${sparseArgs}`, {
-          timeout: 15000,
-        });
+        // sparse-checkout expects directories, not glob patterns or bare filenames
+        // Extract top-level directory names; skip bare filenames (no /)
+        const dirs = [...new Set(
+          config.sparsePaths
+            .filter((p) => p.includes("/"))
+            .map((p) => p.split("/")[0])
+        )];
+        if (dirs.length > 0) {
+          const sparseArgs = dirs.map((d) => `"${d}"`).join(" ");
+          execSync(`cd "${cloneDir}" && git sparse-checkout set ${sparseArgs}`, {
+            timeout: 15000,
+          });
+        }
       } else {
         // Full shallow clone (slower but guaranteed to have files)
         process.stderr.write(
@@ -531,14 +663,41 @@ output.push(`Max chars per page: ${MAX_CHARS}`);
 if (sectionFilter) output.push(`Section filter: "${sectionFilter}"`);
 output.push("");
 
-// Fetch docs
-if (docUrls.length > 0) {
-  output.push(`\n## Documentation Sources\n`);
+// Fetch docs — try docsRepo (raw markdown) first, fall back to curl
+let docsFromRepo = false;
+
+if (config.docsRepo && config.docsRepo.repo) {
+  process.stderr.write(`\nFetching docs from GitHub repo: ${config.docsRepo.repo}...\n`);
+  const repoResults = fetchDocsFromRepo(config.docsRepo);
+
+  if (repoResults.length > 0) {
+    docsFromRepo = true;
+    output.push(`\n## Documentation Sources (from ${config.docsRepo.repo})\n`);
+    for (const result of repoResults) {
+      output.push(`### ${result.title}`);
+      output.push(`*Source: ${result.url}*\n`);
+      output.push(result.markdown);
+      output.push("\n---\n");
+    }
+    process.stderr.write(`  Fetched ${repoResults.length} doc files from repo.\n`);
+  } else {
+    process.stderr.write(`  No content from docs repo — falling back to URL fetching.\n`);
+  }
+}
+
+if (!docsFromRepo && docUrls.length > 0) {
+  output.push(`\n## Documentation Sources (via URL fetch)\n`);
   for (const url of docUrls) {
     process.stderr.write(`Fetching: ${url}...\n`);
     const result = fetchDoc(url);
     if (result.error) {
       output.push(`### Source: ${url}\n\n**ERROR:** ${result.error}\n`);
+    } else if (result.markdown.replace(/\s/g, "").length < 200) {
+      output.push(`### Source: ${url}`);
+      output.push(`**WARNING:** Page returned very little content (${result.markdown.length} chars). This is likely an SPA-rendered page.`);
+      output.push(`Consider adding a \`docsRepo\` field to stack.config.json pointing to the docs source repo on GitHub.\n`);
+      output.push(result.markdown);
+      output.push("\n---\n");
     } else {
       output.push(`### Source: ${url}`);
       output.push(`**Title:** ${result.title}\n`);

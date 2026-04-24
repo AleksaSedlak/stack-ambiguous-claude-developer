@@ -8,6 +8,11 @@
     "https://docs.nestjs.com/techniques/database",
     "https://docs.nestjs.com/fundamentals/testing"
   ],
+  "docsRepo": {
+    "repo": "nestjs/docs.nestjs.com",
+    "paths": ["content/**/*.md"],
+    "branch": "master"
+  },
   "exemplars": [
     "nestjs/nest/sample",
     "brocoders/nestjs-boilerplate"

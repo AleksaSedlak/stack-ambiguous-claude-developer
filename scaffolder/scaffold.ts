@@ -102,6 +102,11 @@ function generateBlankStackConfig(dir: string, name: string): void {
         language: "TODO",
         ecosystem: "TODO",
         docs: [],
+        docsRepo: {
+          repo: "",
+          paths: [],
+          branch: "main",
+        },
         exemplars: [],
         sparsePaths: [],
       },
