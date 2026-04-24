@@ -104,10 +104,25 @@ For rules, present each one with:
 - `format-on-save.sh` — add the stack's formatter command
 - `session-start.sh` — add runtime/package manager detection
 
-**F. Skills** — for stack-specific skills (debug-fix, ship, hotfix, tdd, refactor, test-writer):
-- If `--from` was used, review and adapt the copied skills
-- Otherwise, copy from the closest existing stack (generic-ts for JS ecosystem, phoenix for non-JS) and adapt
-- Key adaptations: test runner commands, build tools, file extensions, framework-specific debugging tips
+**F. STACK-FLAVOR files** — fill ecosystem-specific content using research output from Step 3.
+
+Read `core/templates/skill-flavor-schema.json` for the list of skills that need a STACK-FLAVOR.md and their required sections.
+
+For each skill with `requiresFlavor: true` (debug-fix, test-writer, tdd, refactor, review):
+1. Read the STACK-FLAVOR.md stub in `stacks/<stack-name>/skills/<skill>/STACK-FLAVOR.md`
+2. Each section has a `<!-- TODO: ... -->` guide explaining what to write and where to source it
+3. Draft content using:
+   - **Reproduction Tools / Verification Commands**: exemplar repo scripts, stack CLI docs
+   - **Common Bug Patterns**: stack docs "gotchas"/"pitfalls" sections, exemplar issue trackers
+   - **Framework Detection / Test Patterns / Mocking**: exemplar devDependencies and test directories
+   - **Signature Examples / Validation Libraries**: stack type system docs
+   - **Review Patterns**: stack linter rules, common anti-patterns from docs
+4. Present each draft to the user for review
+5. Write approved content — remove the `<!-- TODO: ... -->` comment
+
+Do NOT copy content from another stack's STACK-FLAVOR.md — each stack's flavor must come from its own research output.
+
+Note: workflow skill methodology (SKILL.md) comes from `core/skills/` via merge.ts — you do NOT need to write or copy those files. Only `setupdotclaude/SKILL.md` is stack-specific.
 
 ## Step 5: Validate
 
@@ -124,7 +139,10 @@ This checks:
 4. Minimum line counts met for critical files
 5. `settings.json` is valid JSON with no string comments in arrays
 6. All hooks pass `bash -n` syntax check
-7. No unlinked TODOs in rule/agent files
+7. No unlinked TODOs in rules/, agents/, or skills/
+8. settings.json has no string comments in arrays
+9. STACK-FLAVOR.md files exist for required skills
+10. STACK-FLAVOR.md files have required sections per skill-flavor-schema.json
 
 If any check fails, fix the issues and re-run. All checks must pass before proceeding.
 
