@@ -669,4 +669,5 @@ Do NOT silently patch issues you encounter — log them as follow-up tasks at th
 
 <!-- As you work through the plan, add any issues you find below so they're tracked. -->
 
-- [ ] 
+- [ ] Each stack's `/setupdotclaude` skill should generate `.claude/workflow-commands.json` with keys: `typecheck`, `lint`, `test`, `build`, `format` — detected from package.json/mix.exs/etc. The `autonomous-commit.md` rule references this file.
+
