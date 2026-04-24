@@ -1,0 +1,81 @@
+{
+  "skills": {
+    "debug-fix": {
+      "requiresFlavor": true,
+      "sections": [
+        {
+          "heading": "Reproduction Tools",
+          "guide": "How to trigger a bug: test runner command, dev server, REPL, minimal script. Include exact CLI invocations. Source: stack CLI docs, exemplar repo README/scripts."
+        },
+        {
+          "heading": "Environment Checks",
+          "guide": "Runtime version check, package manager, virtual env, cache directories to clear. What to check when a bug can't be reproduced. Source: stack 'getting started' / 'troubleshooting' docs."
+        },
+        {
+          "heading": "Common Bug Patterns",
+          "guide": "5-8 ecosystem-specific runtime bugs. For each: **bold name** — symptom, root cause, fix. Source: stack docs 'gotchas'/'pitfalls' sections, exemplar repo issue trackers."
+        },
+        {
+          "heading": "Verification Commands",
+          "guide": "Exact CLI for type-checker, linter, formatter. What to run after a fix to confirm nothing else broke. Source: detected from exemplar repo config files."
+        }
+      ]
+    },
+    "test-writer": {
+      "requiresFlavor": true,
+      "sections": [
+        {
+          "heading": "Framework Detection",
+          "guide": "How to identify which test framework the project uses. List signals: config files, deps, file naming patterns. Source: exemplar repo devDependencies and test directories."
+        },
+        {
+          "heading": "Framework-Specific Test Patterns",
+          "guide": "What to test and how, specific to this stack's frameworks. API endpoint testing, component testing, data layer testing — with the actual libraries and assertion patterns. Source: stack testing docs, exemplar test files."
+        },
+        {
+          "heading": "Mocking Tools",
+          "guide": "Which mocking/stubbing libraries to use and when. Boundary mocking patterns specific to this ecosystem (HTTP, DB, clock, filesystem). Source: stack testing docs, exemplar test files."
+        }
+      ]
+    },
+    "tdd": {
+      "requiresFlavor": true,
+      "sections": [
+        {
+          "heading": "Signature Examples",
+          "guide": "Show a typed function signature in this stack's language as the example for the 'write the signature first' step. Source: stack type system docs."
+        },
+        {
+          "heading": "Validation Libraries",
+          "guide": "Which runtime validation libraries to use at boundaries (equivalent of Zod/Pydantic/Ecto.Changeset for this stack). Source: stack docs, exemplar repo dependencies."
+        }
+      ]
+    },
+    "refactor": {
+      "requiresFlavor": true,
+      "sections": [
+        {
+          "heading": "Verification Commands",
+          "guide": "Exact CLI for type-checker, linter, formatter, test runner. What to run after each refactoring step to confirm nothing broke. Source: detected from exemplar repo config files."
+        }
+      ]
+    },
+    "review": {
+      "requiresFlavor": true,
+      "sections": [
+        {
+          "heading": "Verification Commands",
+          "guide": "Exact type-check, lint, test, build commands to run during self-review. Source: detected from exemplar repo config files and package scripts."
+        },
+        {
+          "heading": "Stack-Specific Review Patterns",
+          "guide": "Common issues to check for in this ecosystem: framework-specific anti-patterns, type system bypasses, security sinks, performance pitfalls. Source: stack linter rule lists, common anti-patterns from docs."
+        }
+      ]
+    },
+    "ship": { "requiresFlavor": false },
+    "hotfix": { "requiresFlavor": false },
+    "init": { "requiresFlavor": false },
+    "setupdotclaude": { "requiresFlavor": false }
+  }
+}

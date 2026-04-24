@@ -26,7 +26,7 @@ Refactor `$ARGUMENTS` safely.
 
 ### 4. Verify
 - All existing tests pass
-- `mix format --check-formatted` and `mix compile --warnings-as-errors` pass
+- Run the project's type-checker, linter, and formatter (see STACK-FLAVOR.md → Verification Commands)
 - The public API hasn't changed (unless that was the explicit goal)
 - The code is objectively simpler — fewer lines, fewer branches, clearer names
 

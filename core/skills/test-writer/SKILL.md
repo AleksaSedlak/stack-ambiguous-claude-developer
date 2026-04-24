@@ -11,7 +11,7 @@ Write comprehensive tests for the code that was just added or changed.
 
 - Check `git diff` and `git diff --cached` to identify new/modified functions, classes, and modules
 - Read each changed file to understand the behavior being added
-- Identify the project's existing test framework, patterns, and conventions by finding existing test files
+- Identify the project's existing test framework, patterns, and conventions by finding existing test files (see STACK-FLAVOR.md → Framework Detection)
 - Place new test files next to the source files or in the project's established test directory — match whatever the project already does
 
 ## Step 2: Analyze Every Code Path
@@ -19,13 +19,13 @@ Write comprehensive tests for the code that was just added or changed.
 For each new or modified function/method/component, map out:
 
 - **Happy path** — normal input, expected output
-- **Edge cases** — empty input, single element, boundary values (0, 1, -1, MAX_INT)
+- **Edge cases** — empty input, single element, boundary values (0, 1, -1, max)
 - **Null/undefined/nil** — what happens with missing data
-- **Type boundaries** — wrong types, type coercion traps
+- **Type boundaries** — wrong types, type coercion traps, runtime parsing errors
 - **Error paths** — invalid input, network failures, timeouts, permission denied
 - **Concurrency** — race conditions, parallel calls with shared state
-- **State transitions** — initial state, intermediate states, final state
-- **Integration points** — how this code interacts with its dependencies
+- **State transitions** — initial state, intermediate states, final state, idempotency
+- **Integration points** — how this code interacts with its dependencies (DB, HTTP, queues)
 
 ## Step 3: Write the Tests
 
@@ -34,16 +34,13 @@ For EACH scenario identified above, write a test. No skipping.
 ### Structure
 
 - **One assertion per test** — if a test name needs "and", split it into two tests
-- **Descriptive names** — test names read as sentences describing the behavior:
-  - `test "returns empty list when input is empty"`
-  - `test "returns error when email format is invalid"`
-  - `test "retries 3 times before failing on network timeout"`
+- **Descriptive names** — test names read as sentences describing the behavior
 - **Arrange-Act-Assert** — set up, execute, verify. Clear separation.
 
 ### What to Test
 
 **Pure functions / business logic:**
-- Every branch (if/else, switch, ternary)
+- Every branch (if/else, switch/case, ternary, pattern match)
 - Every thrown error with exact error type and message
 - Return value types and shapes
 - Side effects (mutations, calls to external services)
@@ -55,11 +52,7 @@ For EACH scenario identified above, write a test. No skipping.
 - Rate limiting behavior if applicable
 - Idempotency for non-GET methods
 
-**LiveView (if applicable):**
-- `mount/3` assigns correct initial state
-- `handle_event/3` returns correct assigns on success and error
-- `handle_params/3` reacts correctly to URL parameter changes
-- Conditional rendering — each branch renders correct content
+> **Stack-specific test patterns** (component testing, data layer testing, etc.): see STACK-FLAVOR.md → Framework-Specific Test Patterns.
 
 **Database / data layer:**
 - CRUD operations return correct data
@@ -81,6 +74,8 @@ For EACH scenario identified above, write a test. No skipping.
 - Never mock the code under test
 - If you mock, verify the mock was called with expected arguments
 - Reset mocks between tests — no shared state leaking
+
+> **Stack-specific mocking tools**: see STACK-FLAVOR.md → Mocking Tools.
 
 ## Step 4: Verify
 

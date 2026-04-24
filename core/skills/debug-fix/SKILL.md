@@ -12,7 +12,7 @@ Find and fix the following issue:
 ## Step 1: Understand the Problem
 
 Determine what kind of input this is:
-- **Jira ticket** (e.g., `PROJ-123`) → fetch from the Jira MCP server if configured. If no Jira MCP is available, ask the user to paste the ticket description.
+- **Issue tracker ticket** (e.g., `PROJ-123`) → fetch from the Jira MCP server if configured. If no Jira MCP is available, ask the user to paste the ticket description.
 - **Error message / stack trace** → parse it for file, line, error type, and the call chain leading to it
 - **Description of behavior** → identify what's expected vs what's happening
 - **URL / screenshot** → examine the referenced resource
@@ -24,9 +24,11 @@ If the problem is unclear, ask clarifying questions before proceeding.
 - Find or write the simplest way to trigger the issue (a test, a curl command, a script)
 - Confirm you can reproduce it reliably
 - If you can't reproduce:
-  - **Environment-specific?** Check env vars, OS, Elixir/OTP version, database state
+  - **Environment-specific?** See STACK-FLAVOR.md → Environment Checks
   - **Intermittent?** Likely a race condition — look for shared mutable state, timing dependencies, or async ordering assumptions
   - **Already fixed?** Check `git log` for recent commits that mention the issue
+
+> **Stack-specific reproduction tools**: see STACK-FLAVOR.md in this directory.
 
 ## Step 3: Investigate
 
@@ -40,6 +42,8 @@ Follow this sequence — don't skip ahead to guessing:
 6. **Verify the hypothesis**: add a targeted log/assertion/test that would confirm or deny it. Run it.
 7. **If wrong, update**: don't keep guessing with the same hypothesis. Go back to step 2 and trace a different path.
 
+> **Common bug patterns for this stack**: see STACK-FLAVOR.md → Common Bug Patterns.
+
 ## Step 4: Fix
 
 - Make the minimal change that fixes the root cause
@@ -51,7 +55,7 @@ Follow this sequence — don't skip ahead to guessing:
 
 - Write a test that reproduces the original bug and now passes with the fix
 - Run related tests to check for regressions
-- Run `mix format --check-formatted` and `mix compile --warnings-as-errors`
+- Run the project's type-checker, linter, and formatter (see STACK-FLAVOR.md → Verification Commands)
 - Temporarily revert your fix and confirm the new test fails — this proves the test actually catches the bug
 
 ## Step 6: Wrap Up

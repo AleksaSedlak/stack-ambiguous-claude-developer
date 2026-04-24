@@ -33,8 +33,7 @@ Ship the current changes through commit, push, and PR creation. Confirm with the
 
 - Propose which files to stage. **Never stage** these:
   - Secrets: `.env*`, `*.pem`, `*.key`, `credentials.json`
-  - Build output: `_build/`, `priv/static/`
-  - Dependencies: `deps/`
+  - Build output and dependencies (stack-specific — e.g., `dist/`, `_build/`, `target/`, `node_modules/`, `deps/`, `__pycache__/`)
   - OS/editor: `.DS_Store`, `Thumbs.db`, `*.swp`, `.idea/`, `.vscode/settings.json`
 - Draft a commit message based on the changes, matching the repo's existing commit style
 - **ASK the user to confirm or edit**: show the exact files to stage and the proposed commit message
