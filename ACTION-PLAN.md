@@ -264,9 +264,9 @@ Do not loosen any check. The point is that "I filled in some files" is not the s
 
 ### Task 3.1 — Make stack hooks extend core hooks instead of replacing
 
-- [ ] Stack hooks source core hook content or chain after it
-- [ ] A stack that "forgets" `.env` protection still gets it from core
-- [ ] Merge logic documented
+- [x] Stack hooks source core hook content or chain after it
+- [x] A stack that "forgets" `.env` protection still gets it from core
+- [x] Merge logic documented
 
 **Prompt:**
 
