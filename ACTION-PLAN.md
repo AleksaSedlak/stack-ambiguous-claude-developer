@@ -129,9 +129,9 @@ Now that the scaffold produces usable output, add the mechanisms that actually c
 
 ### Task 2.1 — Create the stack manifest
 
-- [ ] `core/templates/stack-manifest.json` exists
-- [ ] Manifest covers required files, required sections per rule, minimum line counts
-- [ ] Manifest is consumed by `validate-stack.ts` (next task)
+- [x] `core/templates/stack-manifest.json` exists
+- [x] Manifest covers required files, required sections per rule, minimum line counts
+- [x] Manifest is consumed by `validate-stack.ts` (next task)
 
 **Prompt:**
 
@@ -187,14 +187,14 @@ Do NOT apply this to existing stacks — if they fail, we deal with that separat
 
 ### Task 2.2 — Create `validate-stack.ts`
 
-- [ ] Script reads the manifest and validates a given stack path
-- [ ] Checks required files exist
-- [ ] Checks each rule has required sections (grep for `## Section`)
-- [ ] Checks minimum line counts
-- [ ] Checks no forbidden content markers remain
-- [ ] Checks `settings.json` parses as valid JSON
-- [ ] Checks each hook passes `bash -n`
-- [ ] Exits non-zero on any failure with specific messages
+- [x] Script reads the manifest and validates a given stack path
+- [x] Checks required files exist
+- [x] Checks each rule has required sections (grep for `## Section`)
+- [x] Checks minimum line counts
+- [x] Checks no forbidden content markers remain
+- [x] Checks `settings.json` parses as valid JSON
+- [x] Checks each hook passes `bash -n`
+- [x] Exits non-zero on any failure with specific messages
 
 **Prompt:**
 
@@ -230,10 +230,10 @@ Wire it into `/new-stack` Step 5 as the canonical validation — replace whateve
 
 ### Task 2.3 — Add exemplar-repo parity test to `/new-stack`
 
-- [ ] After filling the stack, the skill walks the user through installing it into an exemplar repo
-- [ ] `/setupdotclaude` must run cleanly
-- [ ] Rule globs must match at least some files in the exemplar
-- [ ] `/pr-review` must produce at least one finding on a recent commit
+- [x] After filling the stack, the skill walks the user through installing it into an exemplar repo
+- [x] `/setupdotclaude` must run cleanly
+- [x] Rule globs must match at least some files in the exemplar
+- [x] `/pr-review` must produce at least one finding on a recent commit
 
 **Prompt:**
 
