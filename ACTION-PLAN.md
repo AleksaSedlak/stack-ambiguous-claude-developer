@@ -632,12 +632,12 @@ Establish a policy and apply it to generic-ts (NOT nestjs or phoenix — those a
 
 ### Task 6.1 — Create a 4th stack as an integration test
 
-- [ ] Fresh stack scaffolded using the fixed pipeline
-- [ ] Research step produces usable output
-- [ ] Stubs guide a complete fill
-- [ ] `validate-stack.ts` passes
-- [ ] Exemplar parity test passes
-- [ ] `/pr-review` produces real findings
+- [x] Fresh stack scaffolded using the fixed pipeline
+- [x] Research step produces usable output
+- [x] Stubs guide a complete fill
+- [x] `validate-stack.ts` passes (38/38)
+- [ ] Exemplar parity test passes (requires installing into a real FastAPI repo — deferred to manual)
+- [ ] `/pr-review` produces real findings (requires a real repo with commits — deferred to manual)
 
 **Prompt:**
 
@@ -670,4 +670,7 @@ Do NOT silently patch issues you encounter — log them as follow-up tasks at th
 <!-- As you work through the plan, add any issues you find below so they're tracked. -->
 
 - [ ] Each stack's `/setupdotclaude` skill should generate `.claude/workflow-commands.json` with keys: `typecheck`, `lint`, `test`, `build`, `format` — detected from package.json/mix.exs/etc. The `autonomous-commit.md` rule references this file.
+- [ ] FastAPI docs (fastapi.tiangolo.com) are partially SPA-rendered — research.ts gets nav/sidebar noise mixed with content. Consider adding a `contentSelector` field to stack.config.json to target specific DOM elements.
+- [ ] Skill files for new stacks need stack-specific adaptation. Copying from generic-ts works for JS-ecosystem stacks but Python stacks need pytest/ruff/mypy commands instead of vitest/eslint/tsc. A proper fill would rewrite each skill's test/lint/build commands.
+- [ ] validate-stack.ts doesn't check that skills/ contain SKILL.md files without EXAMPLE markers — it only checks rules/ and agents/. Skills with scaffold stubs pass silently. Consider adding skills to the forbidden-content scan.
 

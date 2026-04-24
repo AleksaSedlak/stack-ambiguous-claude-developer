@@ -1,0 +1,65 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(git blame*)",
+      "Bash(git remote*)",
+      "Bash(pytest*)",
+      "Bash(python -m pytest*)",
+      "Bash(mypy*)",
+      "Bash(pyright*)",
+      "Bash(ruff*)",
+      "Bash(uvicorn*)",
+      "Bash(fastapi*)",
+      "Bash(alembic*)",
+      "Bash(uv sync*)",
+      "Bash(uv add*)",
+      "Bash(uv run*)",
+      "Bash(pip install*)",
+      "Bash(python -c*)"
+    ],
+    "deny": [
+      "Edit(.env)",
+      "Write(.env)",
+      "Edit(.env.*)",
+      "Write(.env.*)",
+      "Edit(uv.lock)",
+      "Write(uv.lock)",
+      "Edit(requirements.lock)",
+      "Write(requirements.lock)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          ".claude/hooks/protect-files.sh",
+          ".claude/hooks/warn-large-files.sh",
+          ".claude/hooks/scan-secrets.sh"
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          ".claude/hooks/block-dangerous-commands.sh"
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          ".claude/hooks/format-on-save.sh"
+        ]
+      }
+    ],
+    "SessionStart": [
+      ".claude/hooks/session-start.sh"
+    ]
+  }
+}
