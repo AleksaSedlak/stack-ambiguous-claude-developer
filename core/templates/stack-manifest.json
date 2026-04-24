@@ -11,7 +11,12 @@
     "hooks/protect-files.sh",
     "hooks/warn-large-files.sh",
     "hooks/format-on-save.sh",
-    "hooks/session-start.sh"
+    "hooks/session-start.sh",
+    "skills/debug-fix/STACK-FLAVOR.md",
+    "skills/test-writer/STACK-FLAVOR.md",
+    "skills/tdd/STACK-FLAVOR.md",
+    "skills/refactor/STACK-FLAVOR.md",
+    "skills/review/STACK-FLAVOR.md"
   ],
   "minimumRuleSections": {
     "rules/security.md": ["Input Validation", "Injection Prevention", "Authentication", "Secrets"],

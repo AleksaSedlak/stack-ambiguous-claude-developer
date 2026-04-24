@@ -230,8 +230,9 @@ function scanForTodos(dir: string): void {
 
 scanForTodos(join(STACK_DIR, "rules"));
 scanForTodos(join(STACK_DIR, "agents"));
+scanForTodos(join(STACK_DIR, "skills"));
 if (!todoFound) {
-  pass("No unlinked TODOs in rules/ or agents/");
+  pass("No unlinked TODOs in rules/, agents/, or skills/");
 }
 
 // ─── Check 8: settings.json no string comments in arrays ─────────────────────
@@ -266,6 +267,46 @@ if (existsSync(settingsPath)) {
     }
   } catch {
     // Already caught in Check 5
+  }
+}
+
+// ─── Check 9: STACK-FLAVOR.md files exist for required skills ───────────────
+
+console.log("\n─── Check 9: STACK-FLAVOR.md presence ───");
+const flavorSchemaPath = join(ROOT, "core", "templates", "skill-flavor-schema.json");
+if (existsSync(flavorSchemaPath)) {
+  const flavorSchema = JSON.parse(readFileSync(flavorSchemaPath, "utf-8"));
+  for (const [skillName, config] of Object.entries(flavorSchema.skills) as [string, any][]) {
+    if (!config.requiresFlavor) continue;
+    const flavorPath = join(STACK_DIR, "skills", skillName, "STACK-FLAVOR.md");
+    if (existsSync(flavorPath)) {
+      pass(`skills/${skillName}/STACK-FLAVOR.md exists`);
+    } else {
+      fail(`Missing required file: skills/${skillName}/STACK-FLAVOR.md`);
+    }
+  }
+} else {
+  fail("skill-flavor-schema.json not found — cannot check STACK-FLAVOR.md files");
+}
+
+// ─── Check 10: STACK-FLAVOR.md has required sections ────────────────────────
+
+console.log("\n─── Check 10: STACK-FLAVOR.md sections ───");
+if (existsSync(flavorSchemaPath)) {
+  const flavorSchema = JSON.parse(readFileSync(flavorSchemaPath, "utf-8"));
+  for (const [skillName, config] of Object.entries(flavorSchema.skills) as [string, any][]) {
+    if (!config.requiresFlavor) continue;
+    const flavorPath = join(STACK_DIR, "skills", skillName, "STACK-FLAVOR.md");
+    if (!existsSync(flavorPath)) continue; // Already caught in Check 9
+    const content = readFileSync(flavorPath, "utf-8").toLowerCase();
+    for (const section of config.sections) {
+      const pattern = `## ${section.heading.toLowerCase()}`;
+      if (content.includes(pattern)) {
+        pass(`skills/${skillName}/STACK-FLAVOR.md has section "## ${section.heading}"`);
+      } else {
+        fail(`skills/${skillName}/STACK-FLAVOR.md missing required section "## ${section.heading}"`);
+      }
+    }
   }
 }
 
