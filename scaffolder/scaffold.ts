@@ -18,7 +18,7 @@
  * Zero dependencies — uses only Node built-ins.
  */
 
-import { existsSync, mkdirSync, writeFileSync, cpSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync, cpSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -56,22 +56,89 @@ if (fromStack) {
     console.error(`Error: Source stack "${fromStack}" not found.`);
     process.exit(1);
   }
-  cpSync(sourceStack, STACK_DIR, { recursive: true });
-  console.log(`Scaffolded "${stackName}" from "${fromStack}".`);
-  console.log(`Edit the files in ${STACK_DIR} to customize for ${stackName}.`);
+
+  // Selective copy: skip skills/ (methodology comes from core via merge.ts)
+  // and reset stack.config.json (new stack has different docs/exemplars)
+  mkdirSync(STACK_DIR, { recursive: true });
+  for (const entry of readdirSync(sourceStack, { withFileTypes: true })) {
+    if (entry.name === "skills" || entry.name === "stack.config.json") continue;
+    const src = join(sourceStack, entry.name);
+    const dest = join(STACK_DIR, entry.name);
+    cpSync(src, dest, { recursive: true });
+  }
+
+  // Copy setupdotclaude skill (it's 100% stack-specific, useful as starting point)
+  const srcSetup = join(sourceStack, "skills", "setupdotclaude");
+  if (existsSync(srcSetup)) {
+    const destSetup = join(STACK_DIR, "skills", "setupdotclaude");
+    cpSync(srcSetup, destSetup, { recursive: true });
+  }
+
+  // Generate blank stack.config.json
+  generateBlankStackConfig(STACK_DIR, stackName);
+
+  // Generate STACK-FLAVOR.md stubs from schema
+  generateFlavorStubs(STACK_DIR, stackName);
+
+  console.log(`Scaffolded "${stackName}" from "${fromStack}" (rules/agents/hooks copied, skills reset).`);
+  console.log(`\nSkills: methodology comes from core. Fill the STACK-FLAVOR.md stubs in:`);
+  for (const dir of readdirSync(join(STACK_DIR, "skills"))) {
+    if (existsSync(join(STACK_DIR, "skills", dir, "STACK-FLAVOR.md"))) {
+      console.log(`  skills/${dir}/STACK-FLAVOR.md`);
+    }
+  }
+  console.log(`\nRun: npx tsx scaffolder/research.ts ${stackName}`);
   process.exit(0);
+}
+
+// ─── Helper: Generate blank stack.config.json ────────────────────────────────
+
+function generateBlankStackConfig(dir: string, name: string): void {
+  writeFileSync(
+    join(dir, "stack.config.json"),
+    JSON.stringify(
+      {
+        name,
+        language: "TODO",
+        ecosystem: "TODO",
+        docs: [],
+        exemplars: [],
+        sparsePaths: [],
+      },
+      null,
+      2
+    ) + "\n"
+  );
+}
+
+// ─── Helper: Generate STACK-FLAVOR.md stubs from schema ──────────────────────
+
+function generateFlavorStubs(dir: string, name: string): void {
+  const schemaPath = join(ROOT, "core", "templates", "skill-flavor-schema.json");
+  if (!existsSync(schemaPath)) return;
+
+  const schema = JSON.parse(readFileSync(schemaPath, "utf-8"));
+
+  for (const [skillName, config] of Object.entries(schema.skills) as [string, any][]) {
+    if (!config.requiresFlavor) continue;
+
+    const skillDir = join(dir, "skills", skillName);
+    mkdirSync(skillDir, { recursive: true });
+
+    let content = `<!-- Stack flavor for ${skillName} — fill using research output from research.ts -->\n`;
+    for (const section of config.sections) {
+      content += `\n## ${section.heading}\n`;
+      content += `<!-- TODO: ${section.guide} -->\n`;
+    }
+
+    writeFileSync(join(skillDir, "STACK-FLAVOR.md"), content);
+  }
 }
 
 // ─── Create fresh scaffold ────────────────────────────────────────────────────
 
 const dirs = [
   "skills/setupdotclaude",
-  "skills/debug-fix",
-  "skills/ship",
-  "skills/hotfix",
-  "skills/tdd",
-  "skills/refactor",
-  "skills/test-writer",
   "agents",
   "hooks",
   "rules",
@@ -81,50 +148,39 @@ for (const dir of dirs) {
   mkdirSync(join(STACK_DIR, dir), { recursive: true });
 }
 
-// ─── Skill SKILL.md stubs ─────────────────────────────────────────────────────
+// ─── Skill stubs ─────────────────────────────────────────────────────────────
 
-const skillStubs: Array<{ dir: string; name: string; description: string }> = [
-  { dir: "skills/setupdotclaude", name: "setupdotclaude", description: "Scan the project and customize .claude/ configuration to match the actual stack" },
-  { dir: "skills/debug-fix", name: "debug-fix", description: "Find and fix a bug — from any source (issue, error message, user report)" },
-  { dir: "skills/ship", name: "ship", description: "Stage, commit, push, and prepare a PR — with confirmation at each step" },
-  { dir: "skills/hotfix", name: "hotfix", description: "Emergency production fix — minimal change, critical tests only, ship fast" },
-  { dir: "skills/tdd", name: "tdd", description: "Test-Driven Development loop — failing test first, minimal code to pass, refactor" },
-  { dir: "skills/refactor", name: "refactor", description: "Safely refactor code with test coverage as a safety net" },
-  { dir: "skills/test-writer", name: "test-writer", description: "Write comprehensive tests for new or changed code" },
-];
+// setupdotclaude is the only skill that needs a stack-specific SKILL.md stub.
+// All other workflow skills (debug-fix, test-writer, tdd, refactor, ship, hotfix,
+// review, init) come from core/skills/ via merge.ts — no need to generate stubs.
 
-for (const skill of skillStubs) {
-  writeFileSync(
-    join(STACK_DIR, skill.dir, "SKILL.md"),
-    `---
-name: ${skill.name}
-description: ${skill.description}
-argument-hint: "[describe what to ${skill.name}]"
+writeFileSync(
+  join(STACK_DIR, "skills/setupdotclaude", "SKILL.md"),
+  `---
+name: setupdotclaude
+description: Scan the project and customize .claude/ configuration to match the actual ${stackName} stack
+argument-hint: "[optional: focus area like 'frontend' or 'backend']"
 disable-model-invocation: true
 ---
 
-<!-- EXAMPLE — replace with stack-specific implementation -->
-<!-- See stacks/generic-ts/skills/${skill.name}/SKILL.md or stacks/nestjs/skills/${skill.name}/SKILL.md for a complete example -->
+<!-- TODO: Write the full setupdotclaude skill for ${stackName}.
+     This skill is 100% stack-specific — it detects the project's tools, frameworks,
+     and structure, then customizes .claude/ files accordingly.
 
-## Steps
+     See stacks/generic-ts/skills/setupdotclaude/SKILL.md or
+     stacks/nestjs/skills/setupdotclaude/SKILL.md for complete examples.
 
-<!-- EXAMPLE — replace -->
-- Step 1: Understand the request
-- Step 2: Execute the core action
-- Step 3: Verify the result
-- Step 4: Report to the user
-<!-- /EXAMPLE -->
-
-## Stop Conditions
-
-<!-- EXAMPLE — replace -->
-- STOP if the change requires more than 50 lines and wasn't explicitly scoped
-- STOP if tests fail after 3 fix attempts
-- NEVER skip user confirmation at critical decision points
-<!-- /EXAMPLE -->
+     Key phases to implement:
+     1. Detect tech stack (package manager, framework, test runner, linter, ORM)
+     2. Present findings to user for confirmation
+     3. Customize each .claude/ file based on detection
+     4. Generate workflow-commands.json
+     5. Summary of changes -->
 `
-  );
-}
+);
+
+// Generate STACK-FLAVOR.md stubs for skills that need ecosystem-specific content
+generateFlavorStubs(STACK_DIR, stackName);
 
 // ─── CLAUDE.md ────────────────────────────────────────────────────────────────
 
@@ -805,34 +861,7 @@ exit 0
 
 // ─── stack.config.json ────────────────────────────────────────────────────────
 
-writeFileSync(
-  join(STACK_DIR, "stack.config.json"),
-  JSON.stringify(
-    {
-      name: stackName,
-      language: "TODO",
-      ecosystem: "TODO",
-      docs: [
-        "// TODO: Add 3-5 official doc URLs for research mode",
-        "// Example: https://nextjs.org/docs/app/building-your-application/routing",
-      ],
-      exemplars: [
-        "// TODO: Add 2-3 high-quality open-source repos as reference",
-        "// Example: vercel/next.js/examples/with-prisma",
-        "// Example: steven-tey/dub",
-      ],
-      sparsePaths: [
-        "// Optional: paths to sparse-checkout for large exemplar repos",
-        "// If set, only these paths are downloaded (faster). If empty/missing, full clone.",
-        "// Example: src/**",
-        "// Example: package.json",
-        "// Example: tsconfig.json",
-      ],
-    },
-    null,
-    2
-  ) + "\n"
-);
+generateBlankStackConfig(STACK_DIR, stackName);
 
 // ─── CLAUDE.local.md.example ──────────────────────────────────────────────────
 
@@ -901,11 +930,16 @@ Created:
   rules/                 — 6 rule stubs (code-quality, testing, api, database, security, error-handling)
   agents/                — 4 agent stubs (code-reviewer, security, performance, doc)
   hooks/                 — 4 hook stubs (protect-files, warn-large-files, format-on-save, session-start)
-  skills/                — 7 skill stubs with SKILL.md templates
+  skills/setupdotclaude/ — stack-specific setup skill (TODO stub)
+  skills/*/STACK-FLAVOR.md — ecosystem-specific content stubs for 5 skills
+
+  Workflow skills (debug-fix, test-writer, tdd, refactor, ship, hotfix, review,
+  init) come from core/skills/ via merge.ts — no per-stack copies needed.
 
 Next steps:
   1. Fill stack.config.json with doc URLs and exemplar repos
-  2. Run research mode to assist filling TODOs (or fill manually)
-  3. Customize hooks for this stack's build tools and lockfiles
-  4. Adapt skill SKILL.md files from generic-ts/nestjs as a reference
+  2. Run: npx tsx scaffolder/research.ts ${stackName}
+  3. Fill rules, agents, hooks, and STACK-FLAVOR.md files using research output
+  4. Write the setupdotclaude skill for this stack
+  5. Run: npx tsx scaffolder/validate-stack.ts stacks/${stackName}
 `);
