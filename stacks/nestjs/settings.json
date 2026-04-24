@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(git blame*)",
+      "Bash(git remote*)"
+    ],
+    "deny": [
+      "Edit(.env)",
+      "Write(.env)",
+      "Edit(.env.*)",
+      "Write(.env.*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          ".claude/hooks/protect-files.sh",
+          ".claude/hooks/warn-large-files.sh",
+          ".claude/hooks/scan-secrets.sh"
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          ".claude/hooks/block-dangerous-commands.sh"
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          ".claude/hooks/format-on-save.sh"
+        ]
+      }
+    ],
+    "SessionStart": [
+      ".claude/hooks/session-start.sh"
+    ]
+  }
+}

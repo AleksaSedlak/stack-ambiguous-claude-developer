@@ -1,0 +1,22 @@
+{
+  "name": "nestjs",
+  "language": "TypeScript",
+  "ecosystem": "node",
+  "docs": [
+    "https://docs.nestjs.com/fundamentals/custom-providers",
+    "https://docs.nestjs.com/security/authentication",
+    "https://docs.nestjs.com/techniques/database",
+    "https://docs.nestjs.com/fundamentals/testing"
+  ],
+  "exemplars": [
+    "nestjs/nest/sample",
+    "brocoders/nestjs-boilerplate"
+  ],
+  "sparsePaths": [
+    "src/**",
+    "test/**",
+    "package.json",
+    "tsconfig.json",
+    "nest-cli.json"
+  ]
+}
