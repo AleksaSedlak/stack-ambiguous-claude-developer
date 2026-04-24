@@ -194,7 +194,34 @@ All skills already use local git commands (no `gh` CLI). No changes needed for g
 - **doc-reviewer.md**: delete if the project has no documentation directory
 - **frontend-designer.md**: delete (not relevant for Phoenix/LiveView projects)
 
-## Phase 3.5: Obsidian Integration (Optional)
+## Phase 3.5: Generate workflow-commands.json
+
+Generate `.claude/workflow-commands.json` from detected tools. This file is consumed
+by the `autonomous-commit.md` rule for pre-commit verification checks.
+
+Detect commands from `mix.exs` and installed tools:
+
+| Key | Detection | Fallback |
+|-----|-----------|----------|
+| `typecheck` | `dialyxir` in deps → `mix dialyzer` | `null` |
+| `lint` | `credo` in deps → `mix credo`; always: `mix compile --warnings-as-errors` | `mix compile --warnings-as-errors` |
+| `test` | Always available → `mix test` | `mix test` |
+| `build` | Always available → `mix compile` | `null` |
+| `format` | Always available → `mix format` | `mix format` |
+
+Write the file. Use `null` for commands that don't apply. Example:
+
+```json
+{
+  "typecheck": "mix dialyzer",
+  "lint": "mix credo && mix compile --warnings-as-errors",
+  "test": "mix test",
+  "build": null,
+  "format": "mix format"
+}
+```
+
+## Phase 3.6: Obsidian Integration (Optional)
 
 Ask the user:
 > Do you use Obsidian as a knowledge base for technical notes? (yes/no)
@@ -249,7 +276,11 @@ Review pass: [any issues found and fixed, or "all clean"]
 
 - NEVER write changes without user confirmation first
 - NEVER delete a file without confirming — propose "remove" and explain why
-- If the project is empty (no source files, no manifests), say "Project appears empty — keeping all defaults" and stop
+- If the project is empty (no source files, no `mix.exs`), offer best-practice defaults:
+  present recommended tools (mix test, mix format, credo), ask "Apply these
+  defaults? (yes / no / customize)", then fill CLAUDE.md markers, set rule
+  paths to standard locations, generate workflow-commands.json with defaults,
+  and configure hooks for mix format
 - If detection is uncertain, ASK the user rather than guessing
 - Preserve any manual edits the user has already made to .claude/ files — only update sections that need project-specific customization
 - Keep it minimal — don't add complexity. If the default works, leave it alone.

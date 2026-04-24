@@ -156,6 +156,24 @@ The detector + applier handle stack detection, CLAUDE.md markers, rule
 
 Keep this step short. Do not re-scan — the heuristic scripts already did.
 
+## Step 5.5 — Generate workflow-commands.json
+
+Generate `.claude/workflow-commands.json` from the detection JSON (already
+available from Step 1). This file is consumed by the `autonomous-commit.md`
+rule for pre-commit verification checks.
+
+Map detected tools to commands:
+
+| Key | Detection | Fallback |
+|-----|-----------|----------|
+| `typecheck` | `scripts.typecheck` or tsc in devDeps → `npx tsc --noEmit` | `null` |
+| `lint` | `scripts.lint` → `<pkg> run lint`; or eslint → `npx eslint .` | `null` |
+| `test` | `scripts.test` → `<pkg> test`; or jest → `npx jest` | `null` |
+| `build` | `scripts.build` → `<pkg> run build` | `null` |
+| `format` | `scripts.format` → `<pkg> run format`; or prettier → `npx prettier --write .` | `null` |
+
+Write the file. Use `null` for commands that don't apply.
+
 ## Step 6 — Obsidian (optional)
 
 Ask, via AskUserQuestion:

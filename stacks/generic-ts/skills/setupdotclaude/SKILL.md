@@ -292,7 +292,34 @@ All skills use local git commands. No `gh` CLI required.
 - **doc-reviewer.md**: delete if the project has no documentation directory and very
   little inline doc
 
-## Phase 3.5: Obsidian Integration (Optional)
+## Phase 3.5: Generate workflow-commands.json
+
+Generate `.claude/workflow-commands.json` from detected tools. This file is consumed
+by the `autonomous-commit.md` rule for pre-commit verification checks.
+
+Detect commands from `package.json` scripts and devDependencies:
+
+| Key | Detection | Fallback |
+|-----|-----------|----------|
+| `typecheck` | `scripts.typecheck` or `tsc` in devDeps → `npx tsc --noEmit` | `null` |
+| `lint` | `scripts.lint` → `<pkg> run lint`; or `eslint` in devDeps → `npx eslint .`; or `biome` → `npx biome check .` | `null` |
+| `test` | `scripts.test` → `<pkg> test`; or `vitest` → `npx vitest run`; or `jest` → `npx jest` | `null` |
+| `build` | `scripts.build` → `<pkg> run build` | `null` |
+| `format` | `scripts.format` → `<pkg> run format`; or `prettier` → `npx prettier --write .`; or `biome` → `npx biome format --write .` | `null` |
+
+Write the file. Use `null` for commands that don't apply. Example:
+
+```json
+{
+  "typecheck": "npx tsc --noEmit",
+  "lint": "npx eslint .",
+  "test": "npx vitest run",
+  "build": "npm run build",
+  "format": "npx prettier --write ."
+}
+```
+
+## Phase 3.6: Obsidian Integration (Optional)
 
 Ask:
 
@@ -345,7 +372,11 @@ Review pass: [issues found and fixed / "all clean"]
 
 - NEVER write changes without user confirmation first
 - NEVER delete a file without confirming — propose "remove" and explain why
-- If the project is empty (no source, no `package.json`), say "Project appears empty — keeping all defaults" and stop
+- If the project is empty (no source, no `package.json`), offer best-practice defaults:
+  present recommended tools (npm/pnpm, Vitest, Prettier+ESLint or Biome), ask
+  "Apply these defaults? (yes / no / customize)", then fill CLAUDE.md markers,
+  set rule paths to standard locations, generate workflow-commands.json with
+  defaults, and configure hooks for the default formatter
 - If detection is uncertain, ASK the user rather than guessing
 - Preserve manual edits the user has already made to `.claude/` files — only update
   sections that need project-specific customization

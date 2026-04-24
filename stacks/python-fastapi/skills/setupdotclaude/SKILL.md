@@ -292,7 +292,34 @@ All skills use local git commands. No `gh` CLI required.
 - **doc-reviewer.md**: delete if the project has no documentation directory and very
   little inline doc
 
-## Phase 3.5: Obsidian Integration (Optional)
+## Phase 3.5: Generate workflow-commands.json
+
+Generate `.claude/workflow-commands.json` from detected tools. This file is consumed
+by the `autonomous-commit.md` rule for pre-commit verification checks.
+
+Detect commands from `pyproject.toml` tool sections and installed packages:
+
+| Key | Detection | Fallback |
+|-----|-----------|----------|
+| `typecheck` | `mypy` installed or in `[tool.mypy]` → `mypy .`; or `pyright` → `pyright` | `null` |
+| `lint` | `ruff` installed or in `[tool.ruff]` → `ruff check .`; or `flake8` → `flake8 .` | `null` |
+| `test` | `pytest` installed or in `[tool.pytest]` → `pytest`; or `unittest` → `python -m unittest` | `null` |
+| `build` | `[build-system]` in pyproject.toml → `python -m build` | `null` |
+| `format` | `ruff` → `ruff format .`; or `black` → `black .` | `null` |
+
+Write the file. Use `null` for commands that don't apply. Example:
+
+```json
+{
+  "typecheck": "mypy .",
+  "lint": "ruff check .",
+  "test": "pytest",
+  "build": null,
+  "format": "ruff format ."
+}
+```
+
+## Phase 3.6: Obsidian Integration (Optional)
 
 Ask:
 
@@ -345,7 +372,11 @@ Review pass: [issues found and fixed / "all clean"]
 
 - NEVER write changes without user confirmation first
 - NEVER delete a file without confirming — propose "remove" and explain why
-- If the project is empty (no source, no `package.json`), say "Project appears empty — keeping all defaults" and stop
+- If the project is empty (no source, no `pyproject.toml`), offer best-practice defaults:
+  present recommended tools (uv, pytest, ruff, mypy), ask "Apply these defaults?
+  (yes / no / customize)", then fill CLAUDE.md markers, set rule paths to standard
+  locations, generate workflow-commands.json with defaults, and configure hooks
+  for ruff format
 - If detection is uncertain, ASK the user rather than guessing
 - Preserve manual edits the user has already made to `.claude/` files — only update
   sections that need project-specific customization
