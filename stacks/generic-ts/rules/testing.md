@@ -1,5 +1,11 @@
 ---
-alwaysApply: true
+description: Testing patterns for TypeScript/JavaScript projects
+paths:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "tests/**"
+  - "test/**"
+  - "__tests__/**"
 ---
 
 # Testing

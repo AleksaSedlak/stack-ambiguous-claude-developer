@@ -1,20 +1,13 @@
 ---
-alwaysApply: true
+description: TypeScript-specific code quality patterns
+paths:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.mts"
+  - "**/*.cts"
 ---
 
-# Code Quality
-
-## Principles
-
-- Functions do one thing. If you can't name it without "and", split it.
-- No magic values — extract numbers, strings, and config to named constants or typed config.
-  Exception: values used once where meaning is obvious from context (array index 0, HTTP 200, string in a single test assertion).
-- Handle errors at the boundary. Don't catch and re-throw without adding context.
-- No premature abstractions. Three similar lines > a helper used once.
-- Don't add features or "improve" things beyond what was asked.
-- No dead code or commented-out blocks. Git has history.
-
-## TypeScript
+# TypeScript
 
 - `strict: true`. Also: `noUncheckedIndexedAccess`, `noImplicitOverride`,
   `noFallthroughCasesInSwitch`.
@@ -66,8 +59,6 @@ visible before internal helpers, supporting functions in call order (top-to-bott
 as a story). Import ordering is handled by tooling (eslint-plugin-import or prettier
 plugin) — don't manually reorder.
 
-Prefer named exports over default exports. Default exports break rename refactors and grep.
-
 ## Patterns
 
 **Prefer narrowing over casting:**
@@ -117,13 +108,6 @@ const [user, settings] = await Promise.all([fetchUser(id), fetchSettings(id)]);
 const user = await fetchUser(id);
 const settings = await fetchSettings(id);
 ```
-
-## Comments
-
-- **WHY**, never WHAT. If the code needs a "what" comment, rename instead.
-- TSDoc when behavior isn't obvious from the signature. Internal helpers only when non-obvious.
-- Comment non-obvious decisions, workarounds with issue links, complex algorithm steps.
-- No commented-out code — delete it. No journal comments — git blame does this.
 
 ## Code Markers
 

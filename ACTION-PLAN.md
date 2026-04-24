@@ -592,10 +592,10 @@ Otherwise: default to "propose edit → apply → show diff → wait" for each s
 
 ### Task 5.1 — Split oversized `alwaysApply` rules
 
-- [ ] `code-quality.md` split: principles (≤20 lines, alwaysApply) + language specifics (scoped by paths)
-- [ ] `testing.md` scoped to test file paths only
-- [ ] `workflow.md` trimmed below 50 lines where possible; overflow moved to scoped rules
-- [ ] Criteria for `alwaysApply: true` documented
+- [x] `code-quality.md` split: principles (≤20 lines, alwaysApply) + language specifics (scoped by paths)
+- [x] `testing.md` scoped to test file paths only
+- [x] `workflow.md` trimmed below 50 lines where possible; overflow moved to scoped rules
+- [x] Criteria for `alwaysApply: true` documented
 
 **Prompt:**
 
