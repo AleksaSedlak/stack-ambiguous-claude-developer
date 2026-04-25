@@ -823,8 +823,8 @@ if (config.docsRepo && config.docsRepo.repo) {
   }
 }
 
-if (!docsFromRepo && docUrls.length > 0) {
-  output.push(`\n## Documentation Sources (via URL fetch)\n`);
+if (docUrls.length > 0) {
+  output.push(`\n## Documentation Sources (via URL fetch${docsFromRepo ? " — supplemental" : ""})\n`);
   for (const url of docUrls) {
     process.stderr.write(`Fetching: ${url}...\n`);
     const result = fetchDoc(url);

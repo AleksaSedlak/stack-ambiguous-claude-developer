@@ -1,0 +1,28 @@
+{
+  "name": "go",
+  "language": "Go",
+  "ecosystem": "go",
+  "docs": [
+    "https://go.dev/doc/effective_go",
+    "https://go.dev/doc/faq",
+    "https://pkg.go.dev/testing",
+    "https://raw.githubusercontent.com/stretchr/testify/master/README.md",
+    "https://raw.githubusercontent.com/uber-go/mock/main/README.md",
+    "https://raw.githubusercontent.com/go-playground/validator/master/README.md",
+    "https://pkg.go.dev/net/http/httptest"
+  ],
+  "docsRepo": {
+    "repo": "golang/website",
+    "paths": ["_content/doc/**/*.md", "_content/blog/**/*.md"],
+    "branch": "master"
+  },
+  "exemplars": [
+    "gin-gonic/gin",
+    "gofiber/fiber"
+  ],
+  "sparsePaths": [
+    "src/**",
+    "internal/**",
+    "cmd/**"
+  ]
+}

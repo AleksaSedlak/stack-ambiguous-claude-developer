@@ -1,0 +1,10 @@
+# Local settings (secrets, vault paths)
+settings.local.json
+CLAUDE.local.md
+
+# Memory (symlinked to Obsidian vault or local)
+memory/
+
+# Temp files
+*.tmp
+*.log
