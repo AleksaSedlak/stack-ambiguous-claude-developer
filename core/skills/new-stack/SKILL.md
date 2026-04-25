@@ -48,13 +48,17 @@ Example prompt:
 
 ## Step 3: Research
 
-Run the research script:
+Run the research script with `--mapped` to get pre-mapped output for the fill step:
 
 ```bash
-npx tsx scaffolder/research.ts <stack-name>
+npx tsx scaffolder/research.ts <stack-name> --mapped
 ```
 
-This fetches the configured doc pages and analyzes exemplar repo structures. Read the output.
+This fetches docs (from GitHub repo or URLs), analyzes exemplar repos, and maps the research
+to STACK-FLAVOR sections. The mapped output shows which doc excerpts are relevant to each
+section, and marks GAPs where no research coverage was found.
+
+Read the mapped output. The file is saved at `.research-tmp/<stack-name>/research-mapped.md`.
 
 Summarize the key findings for the user:
 - Project structure conventions discovered
@@ -104,25 +108,58 @@ For rules, present each one with:
 - `format-on-save.sh` — add the stack's formatter command
 - `session-start.sh` — add runtime/package manager detection
 
-**F. STACK-FLAVOR files** — fill ecosystem-specific content using research output from Step 3.
+**F. STACK-FLAVOR files** — two-pass fill using the pre-mapped research output.
 
-Read `core/templates/skill-flavor-schema.json` for the list of skills that need a STACK-FLAVOR.md and their required sections.
+Read the mapped research report at `.research-tmp/<stack-name>/research-mapped.md`.
+This file contains research excerpts pre-matched to each STACK-FLAVOR section.
 
-For each skill with `requiresFlavor: true` (debug-fix, test-writer, tdd, refactor, review):
-1. Read the STACK-FLAVOR.md stub in `stacks/<stack-name>/skills/<skill>/STACK-FLAVOR.md`
-2. Each section has a `<!-- TODO: ... -->` guide explaining what to write and where to source it
-3. Draft content using:
-   - **Reproduction Tools / Verification Commands**: exemplar repo scripts, stack CLI docs
-   - **Common Bug Patterns**: stack docs "gotchas"/"pitfalls" sections, exemplar issue trackers
-   - **Framework Detection / Test Patterns / Mocking**: exemplar devDependencies and test directories
-   - **Signature Examples / Validation Libraries**: stack type system docs
-   - **Review Patterns**: stack linter rules, common anti-patterns from docs
-4. Present each draft to the user for review
-5. Write approved content — remove the `<!-- TODO: ... -->` comment
+### Pass 1 — Research-sourced content only
 
-Do NOT copy content from another stack's STACK-FLAVOR.md — each stack's flavor must come from its own research output.
+For each skill/section in the mapped report:
 
-Note: workflow skill methodology (SKILL.md) comes from `core/skills/` via merge.ts — you do NOT need to write or copy those files. Only `setupdotclaude/SKILL.md` is stack-specific.
+1. Read the excerpts listed under that section
+2. Draft content ONLY from what the excerpts contain:
+   - If an excerpt describes a bug pattern, rewrite it as: **bold name** — symptom, root cause, fix
+   - If an excerpt lists tools/commands, extract the concrete CLI invocations
+   - If an excerpt describes a testing pattern, distill it into actionable steps with code examples
+3. If a section is marked `<!-- GAP: No research excerpts found -->`, leave it as:
+   `<!-- GAP: No research coverage. Needs manual fill or additional research. -->`
+4. Do NOT fill from general knowledge in Pass 1. If you know something that isn't in the
+   excerpts, do not write it yet — it goes in Pass 2.
+5. After each skill's sections are drafted, present the draft to the user showing:
+   - Which excerpts each piece of content came from
+   - Which sections are marked as GAPs
+
+Write the approved Pass 1 content to each STACK-FLAVOR.md file.
+
+### Pass 2 — Fill gaps
+
+After Pass 1 is complete for all skills, present the GAP summary to the user:
+
+```
+Pass 1 complete. The following sections have no research coverage:
+
+- debug-fix / Common Bug Patterns: <!-- GAP -->
+- review / Stack-Specific Review Patterns: <!-- GAP -->
+
+For each gap, choose:
+1. Fill from general knowledge (will be tagged [general knowledge])
+2. Add more research sources (provide URLs, re-run research)
+3. Skip this section (leave a note)
+```
+
+For each gap the user chooses to fill from general knowledge:
+- Draft the content and tag it: `<!-- Filled from general knowledge — not sourced from docs -->`
+- Present for user review before writing
+
+### Rules for STACK-FLAVOR fill
+
+- Do NOT copy content from another stack's STACK-FLAVOR.md
+- Do NOT fill sections from general knowledge during Pass 1
+- Every piece of content in Pass 1 must trace back to a specific research excerpt
+- GAPs are expected and normal — they surface where the docs are insufficient
+- Workflow skill methodology (SKILL.md) comes from `core/skills/` via merge.ts — do NOT write those files
+- Only `setupdotclaude/SKILL.md` is stack-specific and needs manual authoring
 
 ## Step 5: Validate
 
