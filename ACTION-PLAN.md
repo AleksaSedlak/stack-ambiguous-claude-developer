@@ -669,8 +669,17 @@ Do NOT silently patch issues you encounter — log them as follow-up tasks at th
 
 <!-- As you work through the plan, add any issues you find below so they're tracked. -->
 
-- [ ] Each stack's `/setupdotclaude` skill should generate `.claude/workflow-commands.json` with keys: `typecheck`, `lint`, `test`, `build`, `format` — detected from package.json/mix.exs/etc. The `autonomous-commit.md` rule references this file.
-- [ ] FastAPI docs (fastapi.tiangolo.com) are partially SPA-rendered — research.ts gets nav/sidebar noise mixed with content. Consider adding a `contentSelector` field to stack.config.json to target specific DOM elements.
-- [ ] Skill files for new stacks need stack-specific adaptation. Copying from generic-ts works for JS-ecosystem stacks but Python stacks need pytest/ruff/mypy commands instead of vitest/eslint/tsc. A proper fill would rewrite each skill's test/lint/build commands.
-- [ ] validate-stack.ts doesn't check that skills/ contain SKILL.md files without EXAMPLE markers — it only checks rules/ and agents/. Skills with scaffold stubs pass silently. Consider adding skills to the forbidden-content scan.
+- [x] Each stack's `/setupdotclaude` skill should generate `.claude/workflow-commands.json` — **Done 2026-04-24.** Added to all 4 stacks' setupdotclaude.
+- [x] SPA-rendered docs problem — **Done 2026-04-26.** Added `docsRepo` field to stack.config.json. research.ts clones docs repo from GitHub and reads raw markdown directly.
+- [x] Skill files need stack-specific adaptation — **Done 2026-04-24.** STACK-FLAVOR split: methodology in core SKILL.md, ecosystem flavor in stacks STACK-FLAVOR.md. scaffold --from generates fresh stubs.
+- [x] validate-stack.ts doesn't check skills/ — **Done 2026-04-24.** Added skills/ to TODO scan (Check 7), STACK-FLAVOR presence (Check 9), STACK-FLAVOR sections (Check 10).
+
+### New follow-ups (2026-04-26)
+
+- [ ] Build remaining stacks via pipeline: nextjs, react-native, phoenix, generic-ts, python-fastapi
+- [ ] Fill Go stack rules/agents/hooks (currently scaffold stubs)
+- [ ] Real-world parity test: install into actual project, run /setupdotclaude + /pr-review
+- [ ] Test workflow-commands.json generation in a real project
+- [ ] Test empty project defaults (Phase 1-alt in setupdotclaude)
+- [ ] Test research pipeline with a sparse-docs framework (Gleam, Zig) to validate GAP handling
 
