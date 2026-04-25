@@ -43,6 +43,7 @@ const args = process.argv.slice(2);
 const stackName = args.find((a) => !a.startsWith("--"));
 const sectionIdx = args.indexOf("--section");
 const sectionFilter = sectionIdx !== -1 ? args[sectionIdx + 1] : null;
+const mappedMode = args.includes("--mapped");
 const maxCharsIdx = args.indexOf("--max-chars");
 const MAX_CHARS =
   maxCharsIdx !== -1 ? parseInt(args[maxCharsIdx + 1], 10) : 40000;
@@ -653,6 +654,140 @@ function analyzeExemplar(repoRef: string): RepoResult {
   }
 }
 
+// ─── Map Research to STACK-FLAVOR Sections ──────────────────────────────────
+
+interface FlavorSection {
+  heading: string;
+  guide: string;
+  searchTerms: string[];
+}
+
+interface FlavorSkill {
+  requiresFlavor: boolean;
+  sections?: FlavorSection[];
+}
+
+interface FlavorSchema {
+  skills: Record<string, FlavorSkill>;
+}
+
+interface MappedExcerpt {
+  source: string;
+  relevance: number;
+  excerpt: string;
+}
+
+interface MappedSection {
+  skill: string;
+  heading: string;
+  guide: string;
+  excerpts: MappedExcerpt[];
+}
+
+function scoreDoc(doc: DocResult, searchTerms: string[]): number {
+  const text = (doc.title + "\n" + doc.markdown.slice(0, 1500)).toLowerCase();
+  let score = 0;
+  for (const term of searchTerms) {
+    const termLower = term.toLowerCase();
+    // Count occurrences in title (weighted 3x) and content
+    const titleHits = (doc.title.toLowerCase().match(new RegExp(termLower, "g")) || []).length;
+    const contentHits = (text.match(new RegExp(termLower, "g")) || []).length;
+    score += titleHits * 3 + contentHits;
+  }
+  return score;
+}
+
+function extractExcerpt(doc: DocResult, maxChars: number = 2000): string {
+  // Take the first meaningful content (skip frontmatter-like lines)
+  const lines = doc.markdown.split("\n");
+  const meaningful: string[] = [];
+  let chars = 0;
+  for (const line of lines) {
+    if (chars > maxChars) break;
+    meaningful.push(line);
+    chars += line.length;
+  }
+  return meaningful.join("\n");
+}
+
+function mapResearchToSections(docs: DocResult[]): MappedSection[] {
+  const schemaPath = join(ROOT, "core", "templates", "skill-flavor-schema.json");
+  if (!existsSync(schemaPath)) {
+    process.stderr.write("  Warning: skill-flavor-schema.json not found — cannot map research.\n");
+    return [];
+  }
+
+  const schema: FlavorSchema = JSON.parse(readFileSync(schemaPath, "utf-8"));
+  const mapped: MappedSection[] = [];
+
+  for (const [skillName, skillConfig] of Object.entries(schema.skills)) {
+    if (!skillConfig.requiresFlavor || !skillConfig.sections) continue;
+
+    for (const section of skillConfig.sections) {
+      // Score every doc against this section's search terms
+      const scored = docs
+        .map((doc) => ({
+          source: doc.title || doc.url,
+          relevance: scoreDoc(doc, section.searchTerms),
+          excerpt: extractExcerpt(doc),
+        }))
+        .filter((s) => s.relevance > 0)
+        .sort((a, b) => b.relevance - a.relevance)
+        .slice(0, 5); // top 5 most relevant docs per section
+
+      mapped.push({
+        skill: skillName,
+        heading: section.heading,
+        guide: section.guide,
+        excerpts: scored,
+      });
+    }
+  }
+
+  return mapped;
+}
+
+function formatMappedOutput(mapped: MappedSection[]): string {
+  const lines: string[] = [];
+  lines.push("# Pre-Mapped Research for STACK-FLAVOR Fill\n");
+  lines.push("Each section below shows the most relevant research excerpts for a specific");
+  lines.push("STACK-FLAVOR.md section. Use ONLY these excerpts for Pass 1 (research-sourced content).");
+  lines.push("Sections with no excerpts are marked as GAPs for Pass 2.\n");
+
+  let currentSkill = "";
+  for (const section of mapped) {
+    if (section.skill !== currentSkill) {
+      currentSkill = section.skill;
+      lines.push(`\n${"=".repeat(60)}`);
+      lines.push(`## Skill: ${section.skill}`);
+      lines.push(`${"=".repeat(60)}\n`);
+    }
+
+    lines.push(`### ${section.heading}`);
+    lines.push(`*Guide: ${section.guide}*\n`);
+
+    if (section.excerpts.length === 0) {
+      lines.push("**<!-- GAP: No research excerpts found for this section. -->**");
+      lines.push("This section will need manual fill or additional research sources in Pass 2.\n");
+    } else {
+      lines.push(`*${section.excerpts.length} relevant excerpt(s):*\n`);
+      for (const excerpt of section.excerpts) {
+        lines.push(`#### Source: ${excerpt.source} (relevance: ${excerpt.relevance})`);
+        lines.push("");
+        // Indent the excerpt as a blockquote for clarity
+        const excerptLines = excerpt.excerpt.split("\n").slice(0, 40);
+        for (const el of excerptLines) {
+          lines.push(`> ${el}`);
+        }
+        lines.push("");
+      }
+    }
+    lines.push("---\n");
+  }
+
+  return lines.join("\n");
+}
+
 // ─── Run Research ─────────────────────────────────────────────────────────────
 
 const output: string[] = [];
@@ -664,6 +799,8 @@ if (sectionFilter) output.push(`Section filter: "${sectionFilter}"`);
 output.push("");
 
 // Fetch docs — try docsRepo (raw markdown) first, fall back to curl
+// Collect all docs for potential mapping in --mapped mode
+const allDocResults: DocResult[] = [];
 let docsFromRepo = false;
 
 if (config.docsRepo && config.docsRepo.repo) {
@@ -672,6 +809,7 @@ if (config.docsRepo && config.docsRepo.repo) {
 
   if (repoResults.length > 0) {
     docsFromRepo = true;
+    allDocResults.push(...repoResults);
     output.push(`\n## Documentation Sources (from ${config.docsRepo.repo})\n`);
     for (const result of repoResults) {
       output.push(`### ${result.title}`);
@@ -699,6 +837,7 @@ if (!docsFromRepo && docUrls.length > 0) {
       output.push(result.markdown);
       output.push("\n---\n");
     } else {
+      allDocResults.push(result);
       output.push(`### Source: ${url}`);
       output.push(`**Title:** ${result.title}\n`);
       output.push(result.markdown);
@@ -735,12 +874,28 @@ if (exemplarRepos.length > 0) {
 
 // Write output
 const report = output.join("\n");
-console.log(report);
-
-// Also save to file for later reference
 mkdirSync(TEMP_DIR, { recursive: true });
-const reportPath = join(TEMP_DIR, "research-report.md");
-writeFileSync(reportPath, report);
-process.stderr.write(`\nReport saved to: ${reportPath}\n`);
+
+if (mappedMode) {
+  process.stderr.write(`\nMapping ${allDocResults.length} docs to STACK-FLAVOR sections...\n`);
+  const mapped = mapResearchToSections(allDocResults);
+  const mappedReport = formatMappedOutput(mapped);
+
+  // Save both reports
+  const mappedPath = join(TEMP_DIR, "research-mapped.md");
+  writeFileSync(mappedPath, mappedReport);
+  writeFileSync(join(TEMP_DIR, "research-report.md"), report);
+
+  console.log(mappedReport);
+  process.stderr.write(`\nMapped report saved to: ${mappedPath}\n`);
+  process.stderr.write(`Full report saved to: ${join(TEMP_DIR, "research-report.md")}\n`);
+} else {
+  console.log(report);
+  const reportPath = join(TEMP_DIR, "research-report.md");
+  writeFileSync(reportPath, report);
+  process.stderr.write(`\nReport saved to: ${reportPath}\n`);
+  process.stderr.write(`Tip: use --mapped to get pre-mapped output for STACK-FLAVOR fill.\n`);
+}
+
 process.stderr.write(`Research artifacts in: ${TEMP_DIR}\n`);
 process.stderr.write(`Run: rm -rf "${TEMP_DIR}" to clean up.\n`);

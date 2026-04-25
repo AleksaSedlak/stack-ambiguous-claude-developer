@@ -5,19 +5,23 @@
       "sections": [
         {
           "heading": "Reproduction Tools",
-          "guide": "How to trigger a bug: test runner command, dev server, REPL, minimal script. Include exact CLI invocations. Source: stack CLI docs, exemplar repo README/scripts."
+          "guide": "How to trigger a bug: test runner command, dev server, REPL, minimal script. Include exact CLI invocations. Source: stack CLI docs, exemplar repo README/scripts.",
+          "searchTerms": ["getting started", "quick start", "cli", "run", "debug", "test", "dev server", "repl", "scripts", "commands"]
         },
         {
           "heading": "Environment Checks",
-          "guide": "Runtime version check, package manager, virtual env, cache directories to clear. What to check when a bug can't be reproduced. Source: stack 'getting started' / 'troubleshooting' docs."
+          "guide": "Runtime version check, package manager, virtual env, cache directories to clear. What to check when a bug can't be reproduced. Source: stack 'getting started' / 'troubleshooting' docs.",
+          "searchTerms": ["install", "setup", "environment", "version", "cache", "troubleshoot", "prerequisites", "requirements", "configuration"]
         },
         {
           "heading": "Common Bug Patterns",
-          "guide": "5-8 ecosystem-specific runtime bugs. For each: **bold name** — symptom, root cause, fix. Source: stack docs 'gotchas'/'pitfalls' sections, exemplar repo issue trackers."
+          "guide": "5-8 ecosystem-specific runtime bugs. For each: **bold name** — symptom, root cause, fix. Source: stack docs 'gotchas'/'pitfalls' sections, exemplar repo issue trackers.",
+          "searchTerms": ["error", "bug", "gotcha", "pitfall", "common mistake", "troubleshoot", "caveat", "warning", "avoid", "issue", "problem", "fix", "faq", "circular", "injection"]
         },
         {
           "heading": "Verification Commands",
-          "guide": "Exact CLI for type-checker, linter, formatter. What to run after a fix to confirm nothing else broke. Source: detected from exemplar repo config files."
+          "guide": "Exact CLI for type-checker, linter, formatter. What to run after a fix to confirm nothing else broke. Source: detected from exemplar repo config files.",
+          "searchTerms": ["lint", "format", "test", "build", "compile", "check", "verify", "ci", "typecheck"]
         }
       ]
     },
@@ -26,15 +30,18 @@
       "sections": [
         {
           "heading": "Framework Detection",
-          "guide": "How to identify which test framework the project uses. List signals: config files, deps, file naming patterns. Source: exemplar repo devDependencies and test directories."
+          "guide": "How to identify which test framework the project uses. List signals: config files, deps, file naming patterns. Source: exemplar repo devDependencies and test directories.",
+          "searchTerms": ["test", "testing", "jest", "vitest", "mocha", "pytest", "exunit", "spec", "unit test", "e2e", "integration test"]
         },
         {
           "heading": "Framework-Specific Test Patterns",
-          "guide": "What to test and how, specific to this stack's frameworks. API endpoint testing, component testing, data layer testing — with the actual libraries and assertion patterns. Source: stack testing docs, exemplar test files."
+          "guide": "What to test and how, specific to this stack's frameworks. API endpoint testing, component testing, data layer testing — with the actual libraries and assertion patterns. Source: stack testing docs, exemplar test files.",
+          "searchTerms": ["test", "testing", "mock", "assert", "expect", "describe", "spec", "fixture", "factory", "setup", "teardown", "beforeEach", "afterEach", "endpoint", "controller", "component"]
         },
         {
           "heading": "Mocking Tools",
-          "guide": "Which mocking/stubbing libraries to use and when. Boundary mocking patterns specific to this ecosystem (HTTP, DB, clock, filesystem). Source: stack testing docs, exemplar test files."
+          "guide": "Which mocking/stubbing libraries to use and when. Boundary mocking patterns specific to this ecosystem (HTTP, DB, clock, filesystem). Source: stack testing docs, exemplar test files.",
+          "searchTerms": ["mock", "stub", "spy", "fake", "double", "httptest", "supertest", "nock", "msw", "bypass", "sandbox"]
         }
       ]
     },
@@ -43,11 +50,13 @@
       "sections": [
         {
           "heading": "Signature Examples",
-          "guide": "Show a typed function signature in this stack's language as the example for the 'write the signature first' step. Source: stack type system docs."
+          "guide": "Show a typed function signature in this stack's language as the example for the 'write the signature first' step. Source: stack type system docs.",
+          "searchTerms": ["type", "interface", "signature", "function", "method", "return", "parameter", "generic", "spec", "typespec"]
         },
         {
           "heading": "Validation Libraries",
-          "guide": "Which runtime validation libraries to use at boundaries (equivalent of Zod/Pydantic/Ecto.Changeset for this stack). Source: stack docs, exemplar repo dependencies."
+          "guide": "Which runtime validation libraries to use at boundaries (equivalent of Zod/Pydantic/Ecto.Changeset for this stack). Source: stack docs, exemplar repo dependencies.",
+          "searchTerms": ["validation", "validate", "schema", "dto", "input", "parse", "sanitize", "constraint", "decorator", "pipe"]
         }
       ]
     },
@@ -56,7 +65,8 @@
       "sections": [
         {
           "heading": "Verification Commands",
-          "guide": "Exact CLI for type-checker, linter, formatter, test runner. What to run after each refactoring step to confirm nothing broke. Source: detected from exemplar repo config files."
+          "guide": "Exact CLI for type-checker, linter, formatter, test runner. What to run after each refactoring step to confirm nothing broke. Source: detected from exemplar repo config files.",
+          "searchTerms": ["lint", "format", "test", "build", "compile", "check", "verify", "ci", "typecheck"]
         }
       ]
     },
@@ -65,11 +75,13 @@
       "sections": [
         {
           "heading": "Verification Commands",
-          "guide": "Exact type-check, lint, test, build commands to run during self-review. Source: detected from exemplar repo config files and package scripts."
+          "guide": "Exact type-check, lint, test, build commands to run during self-review. Source: detected from exemplar repo config files and package scripts.",
+          "searchTerms": ["lint", "format", "test", "build", "compile", "check", "verify", "ci", "typecheck"]
         },
         {
           "heading": "Stack-Specific Review Patterns",
-          "guide": "Common issues to check for in this ecosystem: framework-specific anti-patterns, type system bypasses, security sinks, performance pitfalls. Source: stack linter rule lists, common anti-patterns from docs."
+          "guide": "Common issues to check for in this ecosystem: framework-specific anti-patterns, type system bypasses, security sinks, performance pitfalls. Source: stack linter rule lists, common anti-patterns from docs.",
+          "searchTerms": ["security", "performance", "anti-pattern", "best practice", "avoid", "warning", "deprecated", "vulnerability", "injection", "xss", "auth", "guard", "middleware", "interceptor"]
         }
       ]
     },
