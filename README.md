@@ -6,22 +6,33 @@ A template system for generating stack-specific Claude Code configurations. Take
 
 ```
 core/               — Stack-agnostic foundation (identical across all stacks)
-  skills/           — Universal skills: explain, context, setup-obsidian, pr-review, new-stack
+  skills/           — 13 universal skills (methodology lives here, ecosystem flavor in stacks)
+    debug-fix/      — Bug investigation workflow
+    test-writer/    — Test generation workflow
+    tdd/            — Test-driven development loop
+    refactor/       — Safe refactoring workflow
+    ship/           — Commit + push + PR workflow
+    hotfix/         — Emergency production fix
+    review/         — Self-review before pushing
+    init/           — Bootstrap a new project
+    new-stack/      — Interactive stack creation pipeline
+    pr-review/      — Delegate code review to specialist agents
+    explain/        — Explain code with diagrams
+    context/        — Search Obsidian vault for notes
+    setup-obsidian/ — Configure vault integration
   hooks/            — Universal hooks: protect-files, scan-secrets, block-dangerous-commands, session-start
   rules/            — Autonomous mode rules: pre-commit, stop conditions, recovery, commit/branch, dependencies
-  templates/        ��� Structural templates + stack-manifest.json for validation
+  templates/        — Structural templates, stack-manifest.json, skill-flavor-schema.json
 
-stacks/             — Completed stack-specific configurations
-  nestjs/           — NestJS (with detect.ts + apply.ts automation)
-  phoenix/          — Phoenix/Elixir
-  generic-ts/       — Generic TypeScript/JavaScript (fallback)
-  python-fastapi/   — Python/FastAPI
+stacks/             — Stack-specific configurations
+  nestjs/           — NestJS (complete — 60/60 validation)
+  go/               — Go (STACK-FLAVOR complete, rules/agents/hooks are scaffold stubs)
 
-scaffolder/         — Tools for creating new stacks
-  scaffold.ts       — Creates folder structure with example-template stubs
-  research.ts       — Fetches docs + exemplar repos as structured markdown
-  merge.ts          — Combines core/ + stack → installable output (hooks are composed, not replaced)
-  validate-stack.ts — Validates a stack against stack-manifest.json
+scaffolder/         — Tools for creating and validating stacks
+  scaffold.ts       — Creates folder structure with stubs + STACK-FLAVOR.md from schema
+  research.ts       — Fetches docs (GitHub repo or URLs) + exemplar repos, supports --mapped output
+  merge.ts          — Combines core/ + stack → installable output (hooks composed, skills overlaid)
+  validate-stack.ts — 10-check validation against stack-manifest.json + skill-flavor-schema.json
 
 installer/          — Tools for installing into target repos
   install.ts        — Copies merged output to a project
@@ -33,6 +44,7 @@ installer/          — Tools for installing into target repos
 ### Install an existing stack into a project
 
 ```bash
+npx tsx scaffolder/merge.ts nestjs
 npx tsx installer/install.ts nestjs /path/to/your/nestjs-project
 ```
 
@@ -40,7 +52,7 @@ Then open Claude Code in that project and run `/setupdotclaude` to personalize.
 
 ### Create a new stack
 
-**Recommended: Use the `/new-stack` skill inside Claude Code** — it orchestrates the entire workflow interactively (scaffold → research → fill sections with approval → validate → parity test).
+**Recommended: Use the `/new-stack` skill inside Claude Code** — it orchestrates the full pipeline interactively.
 
 ```
 /new-stack nextjs
@@ -49,107 +61,136 @@ Then open Claude Code in that project and run `/setupdotclaude` to personalize.
 **Or manually via CLI:**
 
 ```bash
-# 1. Scaffold the structure
+# 1. Scaffold the structure (fresh or from existing stack)
 npx tsx scaffolder/scaffold.ts nextjs
+npx tsx scaffolder/scaffold.ts sveltekit --from nestjs  # copies rules/agents/hooks, generates fresh STACK-FLAVOR stubs
 
-# 2. (Optional) Copy from an existing stack as starting point
-npx tsx scaffolder/scaffold.ts sveltekit --from generic-ts
+# 2. Fill stack.config.json with doc URLs, docsRepo, and exemplar repos
 
-# 3. Fill stack.config.json with doc URLs and exemplar repos
-# 4. Run research to get findings
-npx tsx scaffolder/research.ts nextjs
+# 3. Run research with --mapped for pre-matched output
+npx tsx scaffolder/research.ts nextjs --mapped
 
-# 5. Fill the TODO markers in stacks/nextjs/ using the research findings
-# 6. Validate the stack
+# 4. Fill STACK-FLAVOR.md files using the mapped research (two-pass)
+#    Pass 1: research-sourced content only, GAP markers for uncovered sections
+#    Pass 2: review gaps, fill from general knowledge or add research sources
+
+# 5. Fill rules, agents, hooks, CLAUDE.md, setupdotclaude
+
+# 6. Validate
 npx tsx scaffolder/validate-stack.ts stacks/nextjs
 
 # 7. Merge and inspect
 npx tsx scaffolder/merge.ts nextjs
-ls output/nextjs/
 ```
 
-### Validate a stack
+## How Skills Work: Methodology + Flavor
+
+Skills are split into two files:
+
+| File | Lives in | Content | Example |
+|------|----------|---------|---------|
+| `SKILL.md` | `core/skills/` | Stack-agnostic methodology (workflow steps, decision framework) | "Trace backwards from the symptom" |
+| `STACK-FLAVOR.md` | `stacks/<name>/skills/` | Ecosystem-specific tools, bug patterns, commands | "Run `go test -race ./...`" |
+
+During `merge.ts`, core provides the SKILL.md and the stack provides the STACK-FLAVOR.md. The SKILL.md references STACK-FLAVOR.md for ecosystem-specific content.
+
+**Which skills need STACK-FLAVOR.md:**
+
+| Skill | Flavor? | Sections |
+|-------|---------|----------|
+| debug-fix | Yes | Reproduction Tools, Environment Checks, Common Bug Patterns, Verification Commands |
+| test-writer | Yes | Framework Detection, Framework-Specific Test Patterns, Mocking Tools |
+| tdd | Yes | Signature Examples, Validation Libraries |
+| refactor | Yes | Verification Commands |
+| review | Yes | Verification Commands, Stack-Specific Review Patterns |
+| ship, hotfix, init | No | Methodology-only |
+| setupdotclaude | No | 100% stack-specific (each stack writes its own SKILL.md) |
+
+The schema defining required sections lives at `core/templates/skill-flavor-schema.json`.
+
+## Research Pipeline
+
+### The SPA docs problem
+
+Many modern frameworks (NestJS, FastAPI, Next.js) have SPA-rendered docs. `curl` gets an empty HTML shell. The solution:
+
+### docsRepo — fetch raw markdown from GitHub
+
+Most framework docs are written in markdown and stored in GitHub repos. Add a `docsRepo` field to `stack.config.json`:
+
+```json
+{
+  "docsRepo": {
+    "repo": "nestjs/docs.nestjs.com",
+    "paths": ["content/**/*.md"],
+    "branch": "master"
+  },
+  "docs": [
+    "https://some-server-rendered-page.com/docs"
+  ]
+}
+```
+
+- `docsRepo` is the primary source — clones the repo via sparse checkout, reads `.md`/`.mdx` files directly
+- `docs` URLs are always fetched as supplemental sources (useful for gap-filling with additional research)
+- If `docsRepo` is not configured, falls back to curl-only
+
+### Pre-mapped research output
+
+```bash
+npx tsx scaffolder/research.ts <stack> --mapped
+```
+
+The `--mapped` flag reads `skill-flavor-schema.json` and produces output keyed by (skill, section) with the most relevant doc excerpts pre-matched via search terms. This is what the fill step consumes — targeted excerpts per section instead of 138 undifferentiated doc files.
+
+### Two-pass fill
+
+**Pass 1 (research-only):** Write content ONLY from the pre-mapped excerpts. Sections with no research coverage get `<!-- GAP -->` markers.
+
+**Pass 2 (fill gaps):** The user reviews each GAP and chooses: fill from general knowledge (tagged), add more research sources and re-run, or skip.
+
+This ensures content is research-driven and hallucination is visible.
+
+## How the Layers Work
+
+| Layer | What it contains | Update behavior |
+|-------|-----------------|-----------------|
+| `core/` | Universal skills (methodology), hooks, autonomous-mode rules | Always overwritten on update |
+| `stacks/<name>/` | STACK-FLAVOR.md, rules, agents, hooks, setupdotclaude | Agents/hooks overwritten; rules show diff |
+| Target repo `.claude/` | Personalized via /setupdotclaude | `*.local.*` files never touched |
+
+### Hook composition
+
+When both core and stack have a same-named hook (e.g., `protect-files.sh`), they are **composed** — core content runs first, then stack additions are appended. Stack hooks should only contain stack-specific additions.
+
+### Scaffold `--from` behavior
+
+When scaffolding from an existing stack (`--from generic-ts`):
+- Rules, agents, hooks, settings.json, CLAUDE.md → copied as starting point
+- Skills → **skipped** (SKILL.md comes from core, STACK-FLAVOR.md gets fresh TODO stubs)
+- setupdotclaude → copied (it's 100% stack-specific, useful as reference)
+- stack.config.json → reset to blank (new stack has different docs/exemplars)
+
+## Validation
 
 ```bash
 npx tsx scaffolder/validate-stack.ts stacks/<name>
 ```
 
-Checks: required files exist, no forbidden markers remain, required sections present in rules, minimum line counts met, valid JSON, hooks pass `bash -n`, no unlinked TODOs. Exits non-zero on any failure.
+10 checks against `stack-manifest.json` and `skill-flavor-schema.json`:
 
-### Update an installed project
+1. Required files exist (CLAUDE.md, settings.json, rules, agents, hooks, STACK-FLAVOR.md)
+2. No forbidden content markers (`TODO_ADD_GLOB`, `<!-- EXAMPLE —`)
+3. Required sections present in rule files
+4. Minimum line counts met
+5. `settings.json` is valid JSON
+6. Hooks pass `bash -n` syntax check
+7. No unlinked TODOs in rules/, agents/, or skills/
+8. No string comments in JSON arrays
+9. STACK-FLAVOR.md files exist for required skills
+10. STACK-FLAVOR.md files have required sections per schema
 
-```bash
-# See what would change
-npx tsx installer/update.ts nestjs /path/to/project --dry-run
-
-# Apply updates (overwrites skills/hooks/agents, shows diffs for rules/CLAUDE.md)
-npx tsx installer/update.ts nestjs /path/to/project
-```
-
-## How the layers work
-
-| Layer | What it contains | Update behavior |
-|-------|-----------------|-----------------|
-| `core/` | Universal skills, hooks, autonomous-mode rules | Always overwritten on update |
-| `stacks/<name>/` | Framework-specific rules, agents, skills, hooks | Agents/hooks overwritten; rules show diff |
-| Target repo `.claude/` | Personalized via detect/apply | `*.local.*` files never touched |
-
-### Hook composition
-
-When both core and stack have a same-named hook (e.g., `protect-files.sh`), they are **composed** — core content runs first, then stack additions are appended. This means a stack that forgets to protect `.env` still inherits that protection from core. Stack hooks should only contain stack-specific additions, never duplicate core checks.
-
-### Merge rules
-
-When `merge.ts` combines core + stack:
-- `core/skills/` and `core/hooks/` are copied first (baseline)
-- `stacks/<name>/hooks/` are **composed** with core hooks (not replaced)
-- `stacks/<name>/skills/` override same-named core skills
-- `stacks/<name>/agents/`, `rules/`, `scripts/` are copied directly
-- `CLAUDE.md` and `settings.json` come from the stack
-
-### Update rules
-
-When `update.ts` syncs an installed project:
-- Skills, hooks, agents → **overwritten** (meant to stay in sync)
-- Rules, CLAUDE.md → **diff shown, not overwritten** (user may have customized)
-- `settings.json` → **deep-merged** (preserves user additions)
-- `*.local.*` files and extra local files → **never touched**
-
-## Available stacks
-
-| Stack | Status | Automation |
-|-------|--------|-----------|
-| `nestjs` | Complete | detect.ts + apply.ts (monorepo-aware) |
-| `phoenix` | Complete | Manual setup via /setupdotclaude |
-| `generic-ts` | Complete | Framework detection in /setupdotclaude |
-| `python-fastapi` | Complete | Manual setup via /setupdotclaude |
-
-## Core skills
-
-| Skill | Purpose |
-|-------|---------|
-| `/new-stack` | Interactive workflow to create a new stack (scaffold → research → fill → validate → parity test) |
-| `/explain` | Explain code with ASCII diagrams and mental models |
-| `/context` | Search Obsidian vault for relevant notes |
-| `/setup-obsidian` | Configure Obsidian vault integration |
-| `/pr-review` | Delegate code review to specialist agents |
-
-Stacks provide additional skills: `/debug-fix`, `/ship`, `/hotfix`, `/tdd`, `/refactor`, `/test-writer`, `/setupdotclaude`.
-
-## Core hooks
-
-| Hook | Trigger | Purpose |
-|------|---------|---------|
-| `protect-files.sh` | PreToolUse (Edit/Write) | Blocks .env, secrets, .git/, .claude/hooks/ |
-| `scan-secrets.sh` | PreToolUse (Edit/Write) | Detects API keys, tokens, credentials in content |
-| `block-dangerous-commands.sh` | PreToolUse (Bash) | Blocks push to main, force push, DROP TABLE, rm -rf / |
-| `session-start.sh` | SessionStart | Injects git branch, last commit, uncommitted changes |
-
-Stacks extend these with ecosystem-specific protections (lockfiles, build output, package publish, formatter). Hook composition ensures core protections are never lost.
-
-## Core rules (autonomous mode)
-
-These rules live in `core/rules/` and govern agent behavior for prompt-to-commit workflows:
+## Core Rules (Autonomous Mode)
 
 | Rule | Purpose |
 |------|---------|
@@ -161,30 +202,18 @@ These rules live in `core/rules/` and govern agent behavior for prompt-to-commit
 | `dependencies.md` | When dependency changes need confirmation |
 | `autonomous-mode-requirements.md` | Required hooks + conditions for autonomous mode |
 
-## Token economy
+## Token Economy
 
-Rules use `alwaysApply: true` only when they govern agent behavior on every action (commit rules, stop conditions). Language-specific and file-type-specific rules use `paths:` scoping so they're only loaded when relevant files are being edited.
+Rules use `alwaysApply: true` only when they govern agent behavior on every action. Language-specific and file-type-specific rules use `paths:` scoping.
 
 | Scope | What's loaded | When |
 |-------|--------------|------|
 | Core rules (autonomous mode) | ~190 lines | Every turn |
 | Stack `alwaysApply` rules | ~30 lines | Every turn |
-| Path-scoped rules (TypeScript, testing, security, etc.) | 50-130 lines each | Only when editing matching files |
-
-## Quality enforcement
-
-New stacks are validated against `core/templates/stack-manifest.json` via `validate-stack.ts`:
-
-- **Required files**: CLAUDE.md, settings.json, 4+ rules, 2+ agents, 4 hooks
-- **Required sections**: security must have Input Validation, Injection Prevention, Authentication, Secrets (etc.)
-- **Minimum line counts**: security ≥60, code-quality ≥40, agents ≥30
-- **Forbidden content**: no leftover `TODO_ADD_GLOB` or `<!-- EXAMPLE —` markers
-- **Structural checks**: valid JSON, valid bash syntax, no string comments in arrays
-
-The `/new-stack` skill also requires a parity test: install into an exemplar repo, run `/setupdotclaude`, verify rule globs match real files, and confirm `/pr-review` produces findings.
+| Path-scoped rules | 50-130 lines each | Only when editing matching files |
 
 ## Requirements
 
 - Node.js 20+
-- `git` CLI (for research.ts exemplar analysis)
+- `git` CLI (for research.ts)
 - `jq` (for hooks at runtime)
